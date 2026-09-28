@@ -1,26 +1,18 @@
-# starter/ — o que tem aqui
+# starter/ da semana 4
 
 ```
 starter/
-|-- decisao-escopo-template.md         <- copie pra DECISAO-ESCOPO.md, preencha ANTES de codar (Lab 1)
-|-- LOG-INJECTION-TEMPLATE.md          <- o entregável principal — preencha após uma tentativa real
-|-- mcp-server-template/               <- copie pra `meu-mcp-server/` — SEU server (Lab 1)
-|   |-- src/index.ts                   <- tool `ping` funcionando + TODOs pra sua tool
-|   |-- package.json, tsconfig.json
-|   `-- .mcp.json.example
-|-- demos/mcp-demo-vulneravel/         <- USO DA FACILITADORA — Demo 1 e Demo 2 (aula 1)
-|   |-- src/index.ts                   <- ler_issue (injection) + gerar_relatorio_html (output handling)
-|   `-- fixtures/                      <- issue-42.txt (payload) + segredo.txt (fixture falsa)
-`-- supply-chain-sim/                  <- USO DA FACILITADORA — Demo 3 (aula 1)
-    |-- src/index.ts                   <- conversor-moeda com descrição envenenada (tool poisoning)
-    `-- .env                           <- chave FALSA, só pra demo
+|-- meu-primeiro-mcp/            <- LAB 2 da aula 7 e base do entregável
+|-- decisao-escopo-template.md   <- o que a tool NÃO pode fazer (preencha antes do código)
+`-- demos/
+    |-- mcp-demo-vulneravel/     <- riscos 1 e 2 da aula 8 (inseguro de propósito)
+    `-- supply-chain-sim/        <- risco 3 da aula 8 (simulação local e segura)
 ```
 
-**Aluno:** você usa `decisao-escopo-template.md`, `mcp-server-template/` e
-`LOG-INJECTION-TEMPLATE.md`. Os outros dois (`demos/` e `supply-chain-sim/`) são material
-de demonstração da facilitadora — leia o código deles depois da aula se quiser entender a
-implementação das três falhas, mas não são o seu ponto de partida.
+Tudo aqui é **JavaScript puro (ESM) com o SDK oficial v2** (`@modelcontextprotocol/server`
++ `zod`). Sem TypeScript e sem etapa de build: você edita o `.mjs` e reconecta.
+Precisa de **Node 20+**.
 
-**Facilitadora:** cada subpasta de demo tem seu próprio `README.md` com o setup e o aviso
-de segurança específico (principalmente `supply-chain-sim/README.md` — leia antes de
-rodar em sala).
+Cada pasta tem o `espiao.mjs`: um intermediário sem dependência que fica entre o Claude
+Code e o server e grava cada mensagem do protocolo no `conversa.log`. Conecte sempre pelo
+espião durante a semana; no seu projeto final pode apontar direto pro `server.mjs`.

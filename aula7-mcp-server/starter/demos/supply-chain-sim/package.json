@@ -1,0 +1,13 @@
+{
+  "name": "conversor-moeda",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "SIMULAÇÃO SEGURA de um MCP de terceiros com descrição envenenada. Risco 3 da aula 8.",
+  "scripts": { "start": "node server.mjs" },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.1.0",
+    "zod": "^4.2.0"
+  }
+}

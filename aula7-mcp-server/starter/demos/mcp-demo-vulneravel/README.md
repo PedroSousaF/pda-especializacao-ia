@@ -1,29 +1,31 @@
 # mcp-demo-vulneravel
 
-Server de demonstração **propositalmente inseguro**, usado exclusivamente pela
-facilitadora nas Demos 1 e 2 da aula 1 (ver `ROTEIRO-FACILITADORA.md`). Não é um exemplo
-de como escrever uma tool — é um exemplo de como duas falhas comuns se parecem em código
-real e curto.
+**Inseguro de propósito.** Usado nos riscos 1 e 2 da aula 8. Não copie o jeito de escrever
+estas tools; copie o jeito de desconfiar delas.
 
-## Setup (facilitadora, antes da aula)
+| tool | falha | risco OWASP 2026 |
+|---|---|---|
+| `ler_issue` | devolve o texto da issue inteiro, sem separar dado de ordem | LLM01 Prompt Injection (indireta) |
+| `gerar_relatorio_html` | escreve no HTML o que o modelo mandou, sem escapar | LLM10 Improper Output Handling (era LLM05 em 2025) |
+
+A `fixtures/issue-42.txt` tem uma "nota interna" que finge ser instrução de sistema e pede
+pro agente ler `fixtures/segredo.txt` e colocar um `<script>` no relatório. O segredo é
+falso.
+
+## Rodar
 
 ```bash
-cd starter/demos/mcp-demo-vulneravel
 npm install
-npm run build
-claude mcp add --transport stdio demo-vulneravel -- node build/index.js
+claude mcp add demo-vulneravel -- node "$(pwd)/espiao.mjs"
+claude
 ```
 
-## Tools
+Pedidos da demo: "resume a issue 42" e depois "gera um relatório em HTML da issue 42".
+Abra o `conversa.log` e procure a nota interna chegando no resultado do `ler_issue`: ela
+entra na janela do modelo, obedecendo ou não.
 
-- `ler_issue(id)` — lê `fixtures/issue-<id>.txt` e devolve cru. `issue-42.txt` tem uma
-  instrução escondida que pede pro agente ler `fixtures/segredo.txt` (uma fixture falsa,
-  sem dado real) e incluir no resumo, e também injeta uma instrução persistente pra Demo 2.
-- `gerar_relatorio_html(conteudo)` — escreve `conteudo` direto num `.html`, sem escapar.
-  Usada na Demo 2 pra mostrar a tag `<script>` (inofensiva, só um `alert()`) injetada pela
-  Demo 1 executando quando o arquivo é aberto no navegador.
+Pra ver a falha 2 sem depender do modelo: MCP Inspector (Node 22.19+),
+`npx @modelcontextprotocol/inspector node server.mjs`, chame `gerar_relatorio_html` com
+`<p>oi</p><script>alert(1)</script>` e abra o `relatorio.html` no navegador.
 
-## Depois da aula
-
-Apague `relatorio.html` gerado (`git status` deve mostrar ele como novo, não commitado) —
-ele não faz parte do repo, é gerado toda vez que a demo roda.
+Correções em `CORRECAO.md`. Depois: `claude mcp remove demo-vulneravel`.

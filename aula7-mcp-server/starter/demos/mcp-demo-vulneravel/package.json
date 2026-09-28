@@ -1,17 +1,13 @@
 {
   "name": "mcp-demo-vulneravel",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "scripts": {
-    "build": "tsc"
-  },
+  "description": "SERVER DE DEMONSTRAÇÃO, INSEGURO DE PROPÓSITO. Riscos 1 e 2 da aula 8.",
+  "scripts": { "start": "node server.mjs" },
+  "engines": { "node": ">=20" },
   "dependencies": {
-    "@modelcontextprotocol/server": "^1.0.0",
-    "zod": "^3.23.8"
-  },
-  "devDependencies": {
-    "@types/node": "^20.14.0",
-    "typescript": "^5.5.0"
+    "@modelcontextprotocol/server": "^2.1.0",
+    "zod": "^4.2.0"
   }
 }

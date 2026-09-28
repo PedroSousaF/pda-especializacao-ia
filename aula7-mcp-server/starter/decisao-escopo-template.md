@@ -1,50 +1,41 @@
-# Decisão de escopo — preencha ANTES de escrever a tool
+# DECISAO-ESCOPO.md
 
 <!--
-  Isso não é burocracia. É a única parte desta semana que o agente não decide por você.
-  Preencha isso, commite, e SÓ DEPOIS comece o código. Na aula 2, este documento é o
-  que o seu colega recebe pra tentar atacar — ele é o alvo declarado do red team.
+  Preencha antes de escrever a tool. O agente escreve a função; ele não sabe o que é
+  perigoso no seu projeto. Na aula 8, no último bloco, alguém da turma lê este arquivo
+  e as descrições das suas tools procurando poder demais.
 -->
 
-## O projeto
+## O server
 
-- **Domínio do catálogo (semana 2):**
-- **Que dado ou sistema real esse tool vai tocar** (planilha, API, arquivo, banco):
+- **Projeto e domínio do catálogo (semana 2):**
+- **Que dado ou sistema ele toca** (API, arquivo, planilha, banco):
+- **Escopo em que você conecta** (`local`, `project` ou `user`) e por quê:
 
-## A tool
+## Tool 1: `<nome>`
 
-- **Nome da tool:**
-- **O que ela recebe (parâmetros):**
-- **O que ela devolve:**
+- **Recebe:**
+- **Devolve (só os campos que a tarefa precisa):**
+- **Precisa poder:** (a menor lista possível. Cada item é uma permissão que você concede)
+  1.
+- **Não pode, mesmo que fosse prático:** (pense em: escrever quando só devia ler, abrir
+  arquivo fora de uma pasta, devolver dado pessoal de alguém, rodar comando, agir sem
+  confirmação em algo que não dá pra desfazer)
+  1.
+  2.
+- **Como o código garante:** (não vale "vou tomar cuidado". Tem que ser algo que um pedido
+  educado não contorna: schema que recusa entrada fora do formato, caminho fixo, campo
+  cortado da resposta, limite de tamanho, nenhuma credencial de escrita no processo)
+  1.
+  2.
 
-## O que ela PRECISA poder fazer
+## Tool 2: `<nome>`
 
-(a menor lista possível — cada item aqui é uma permissão que você está concedendo)
+(mesmas perguntas)
 
-1.
-2.
+## Texto de terceiros
 
-## O que ela NÃO PODE poder fazer
-
-(mesmo que fosse conveniente. Pense em: escrever/apagar quando só devia ler, acessar
-arquivo fora de uma pasta específica, expor dado sensível de outra pessoa, executar
-código arbitrário, agir sem confirmação em algo irreversível)
-
-1.
-2.
-3.
-
-## Como isso é garantido no código
-
-(não vale "eu vou tomar cuidado". Tem que ser algo que um ataque não consegue contornar
-só pedindo educadamente. Exemplos: allow-list de caminhos, validação de schema que rejeita
-tipos inesperados, ausência de qualquer credencial de escrita no processo, um limite de
-tamanho de entrada/saída)
-
-1.
-2.
-
-## Se alguém tentasse enganar o agente pra fazer o que está na lista de "NÃO PODE"
-
-- **O que você acha que aconteceria hoje, antes de qualquer correção?**
-- **Qual sinal mostraria que o ataque funcionou** (o que você olharia pra saber)?
+- **Alguma tool devolve texto escrito por outra pessoa** (issue, e-mail, comentário, nome
+  de empresa)? Qual?
+- **Se esse texto trouxesse uma ordem escondida**, o que o agente conseguiria fazer com as
+  outras ferramentas que ele tem na sessão?
