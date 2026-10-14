@@ -33,3 +33,29 @@ analogia. Mínimo exigido: 8. Entregues: 11.
   dois relatórios da GitClear já cobrem o mesmo terreno com metodologia declarada.
 - Não usei nenhuma fonte sobre DDD tático (agregados, entidades, repositórios) além do
   necessário pra decidir onde ele NÃO entra — a exclusão é deliberada, não desconhecimento.
+
+---
+
+## Versão de 05/10: spec com DDD e BDD, OpenSpec e TLC
+
+Abertas e conferidas em 05/10/2026 (conteúdo, número de imagens, idioma).
+
+| # | URL | O que é | Onde entra |
+|---|---|---|---|
+| 12 | <https://douglasalonso.medium.com/ddd-na-pr%C3%A1tica-parte-2-ee3cedd26125> | Douglas Alonso, DDD na Prática parte 2: locadora de veículos, 16 histórias viram glossário e bounded contexts. 1 diagrama. PT | LAB 1 (S23) |
+| 13 | <https://www.fabriciorissetto.com/blog/ddd-bounded-context/> | Fabrício Rissetto, Bounded Context: "Produto" em Vendas e em Suporte, context map, shared kernel. 3 diagramas. PT | S14, LAB 1 |
+| 14 | <https://www.treinaweb.com.br/blog/o-que-e-o-event-storming> | TreinaWeb, O que é o Event Storming: a legenda das cores dos post-its. 2 imagens. PT | LAB 1, S47 |
+| 15 | <https://medium.com/involves-rocks/usando-ddd-e-event-storming-para-remodelar-o-dom%C3%ADnio-de-um-m%C3%B3dulo-legado-aa12a364616e> | Involves, DDD e Event Storming num módulo legado: fotos das paredes de post-it, de eventos até bounded context. PT | LAB 1 (leitura extra) |
+| 16 | <https://fullcycle.com.br/domain-driven-design/> | Full Cycle, O que é DDD: subdomínios núcleo, suporte e genérico num streaming estilo Netflix. Diagramas. PT | S15, LAB 1 |
+| 17 | <https://medium.com/@lilianborbadeoliveira/crit%C3%A9rios-de-aceita%C3%A7%C3%A3o-para-hist%C3%B3rias-de-usu%C3%A1rios-no-agile-finalidades-formatos-exemplos-e-e00ad43d3543> | Lílian Borba, critérios de aceitação: checklist de regra e cenário Dado/Quando/Então. PT | S25 |
+| 18 | <https://dgosantos89.github.io/Gherkin-p1/> | Diego Santos, Usando todo o poder do Gherkin 1/2: Gherkin em português, exemplo ruim e corrigido. PT | S29 |
+| 19 | <https://medium.com/@fernandesSamuel/simplificando-bdd-646fb58f676b> | Samuel Fernandes, Simplificando BDD: introdução leve. PT | leitura extra |
+| 20 | <https://cucumber.io/blog/bdd/example-mapping-introduction/> | Matt Wynne, Introducing Example Mapping: as 4 cores de cartão. EN, fotos | S5, S25, S26 |
+| 21 | <https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html> | Birgitta Böckeler, Understanding Spec-Driven-Development: Kiro, spec-kit and Tessl. Níveis spec-first, spec-anchored, spec-as-source; crítica ao excesso de markdown. EN | S3, S33 |
+| 22 | <https://github.com/Fission-AI/OpenSpec> | OpenSpec: `npm install -g @fission-ai/openspec@latest`, `openspec init`, `/opsx:propose`, `/opsx:apply`, `/opsx:archive`. Node 20.19+. Testado: 1.14.0 | S34–S39, LAB 2 |
+| 23 | <https://agent-skills.techleads.club/tlc-spec-driven/> | TLC spec-driven (Tech Leads Club, autor Felipe Rodrigues): `npx @tech-leads-club/agent-skills install -s tlc-spec-driven -a claude-code`. EARS, fases adaptativas, verificador com contexto limpo. Testado: 3.3.0 | S40–S41, LAB 2 |
+| 24 | <https://www.tabnews.com.br/wildrik/spec-driven-development-quando-a-especificacao-vira-a-fonte-da-verdade-nao-o-codigo> | TabNews/wildrik, SDD: a spec como fonte da verdade. Panorama de junho/2026 (Spec Kit, OpenSpec, Kiro, Tessl). PT | leitura extra |
+
+**Descartados:** Alura "Spec-Driven Development" (página de curso, sem imagem), Elemar Jr
+sobre Event Storming (sem imagem), tutorial de Spec Kit no TabNews (sem imagem, usa Gemini
+CLI).

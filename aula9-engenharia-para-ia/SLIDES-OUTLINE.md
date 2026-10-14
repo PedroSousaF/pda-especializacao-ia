@@ -1,754 +1,1252 @@
-# Slides — Semana 5: Engenharia de software para desenvolvimento com IA
+# Slides: Semana 5, aula 9. Engenharia de software na era da IA: clean code, DDD e spec
 
-**Total: 32 slides na aula 1** (mais os 3 slides de regras do jogo da aula 2, que
-continuam inalterados — aula 2 é Excalidraw ao vivo, não slide).
+**49 slides, aula 1 (aula 9).** A aula 10 é Excalidraw coletivo e não tem deck (só o S47
+anuncia).
 
-Template PDA: roxo escuro + amarelo, Dela Gothic One (títulos) / IBM Plex Sans (corpo).
-Kicker no topo, título em tag `</ASSUNTO>`, frase-âncora curta em caixa alta com quebra
-de linha intencional, pontos numerados com uma frase de explicação cada, linha `ref:`
-com a fonte real, marcador `MÃO NA MASSA` onde a facilitadora para de falar, blocos de
-terminal/código reais, notas da apresentadora com timestamp.
+Esta versão substitui o outline anterior (que continua no histórico do git). Mudou o
+foco: a aula sai da revisão de código plantado e vai pra **escrever spec com DDD e BDD**
+e entregar essa spec pro agente com **OpenSpec** e **TLC spec-driven**. O projeto da
+demo é um **quiz ao vivo estilo Kahoot da PDA** (`_facilitadora/demo-quiz-pda/`).
 
-**Fio condutor da semana** (já declarado no `ROTEIRO-FACILITADORA.md` e no `README.md`,
-repetido aqui): **"A tool funciona. Ninguém perguntou se o código dela é bom."** Abre no
-recap (S4), sustenta a virada de bloco (S17) e fecha no `</FECHAMENTO>` (S28).
+**Fio condutor:** "Pronto é o que está escrito." Abre no S5, volta no S25 (critério de
+aceite) e no S38 (validate barrando spec vaga), fecha no S48.
 
-Regra de imagem desta semana: **no máximo 3 slides consecutivos sem imagem, diagrama ou
-GIF** — cada slide abaixo tem uma linha **Visual:** dizendo o recurso (a estrela do
-template não conta como recurso). Maior sequência sem recurso visual neste deck: 2
-slides (S14–S15, os dois "erro de propósito" da Demo 1, onde a tela compartilhada ao
-vivo já é o recurso visual da sala, mas não conta pro teto porque não é imagem do deck).
+**Tudo que aparece como saída de agente ou de terminal foi rodado de verdade** nesta
+preparação (05/10, OpenSpec 1.14.0, tlc-spec-driven 3.3.0, Claude Code), no
+`demo-quiz-pda`. As saídas estão em `_facilitadora/plano-b/`. Se a demo ao vivo travar,
+abra o arquivo correspondente.
 
-Ordem pedagógica que não pode inverter: a turma olha código ruim e nomeia o que
-incomoda **antes** de qualquer nome técnico aparecer (S5 → S6). Dentro do bloco de
-Abstraction Bloat, o guarda-chuva também só vem depois do checklist já ter dado nome ao
-que a turma apontou (S6 → S7).
+**Imagens:** 13 GIFs gerados no template (`img/gif-*.gif`, com o último quadro em
+`-ultimo.png` pra conferir) e 9 imagens de terceiros (`_facilitadora/img-ref/ref-*`), com crédito na
+linha `ref:`. Nenhum slot vazio.
 
-Só a **aula 1** tem slide de apoio. A **aula 2** tem só 3 slides de regras do jogo — o
-resto é o Excalidraw projetado ao vivo, board de aluno, não slide (ver seção final).
+## Rastreio dos objetivos
+
+| Objetivo (semana + pedido de hoje) | Slides |
+|---|---|
+| Identificar sinais de código ruim gerado por IA | S7–S12 |
+| Abstraction Bloat + nomes equivalentes (Clean Architecture Paradox, Abstraction Illusion) | S11 |
+| Clean code: nomeação, tamanho de função, responsabilidade única | S10 |
+| DDD estratégico concreto: subdomínios, linguagem ubíqua, bounded context como fronteira pro agente | S14–S21, LAB 1 |
+| BDD e critério de aceite como definição de pronto | S25–S31 |
+| Por que funciona: ligação com context engineering (semanas 2, 3, 4) | S4, S13, S21, S32, S35 |
+| OpenSpec com comandos e prompts no slide | S34–S39, LAB 2 |
+| TLC spec-driven com comandos e prompts no slide | S40–S41, LAB 2 |
+| Cenário do quiz estilo Kahoot da PDA | S6 em diante |
+| Artigos em português pra ler no lab | S23 |
+
+## Tempo
+
+| hora | bloco | slides |
+|---|---|---|
+| 0:00–0:05 | Giro das IAs (curto hoje) | S1–S3 |
+| 0:05–0:15 | Recap ativo: as semanas 2, 3 e 4 viram uma pergunta só | S4–S5 |
+| 0:15–0:35 | Bloco 1: o que o agente faz com pedido vago | S6–S13 |
+| 0:35–0:50 | Bloco 2: DDD estratégico no quiz | S14–S21 |
+| 0:50–1:05 | **LAB 1** glossário e fronteiras do seu projeto | S22–S24 |
+| 1:05–1:30 | Bloco 3: critério de aceite, BDD, OpenSpec e TLC | S25–S41 |
+| 1:30–1:55 | **LAB 2** sua primeira spec | S42–S45 |
+| 1:55–2:00 | Fechamento | S46–S49 |
+
+**Se atrasar, cortar nesta ordem:** S33 (níveis de SDD), S12 (checklist inteiro; fica
+só o link), S31 (três formatos; fala em 1 frase no S29), S41 (TLC devolveu; mostra no
+lab). Nunca cortar lab.
+
+## Antes da aula (checklist do deck)
+
+- Copiar `_facilitadora/demo-quiz-pda/` pra uma pasta fora do repo, rodar
+  `git init -b main && git add -A && git commit -m "quiz PDA"` e `npm test` (4 testes
+  verdes).
+- **Não** rodar `openspec init` nem instalar o TLC no demo antes: a instalação é parte
+  da demo.
+- Deixar uma segunda cópia do demo já com OpenSpec e TLC instalados e o
+  `config.yaml` preenchido, pro caso de a rede da sala travar o `npm install`.
+- Ter Python 3 na máquina (os scripts de validação do TLC são Python).
+- A change vaga do S38 é criada ao vivo no S35, depois do `openspec init` (comandos no S35).
+- Abrir em abas: os 4 artigos do S23, o README do OpenSpec, a página do TLC.
 
 ---
 
 ## AULA 1
 
-## S1 — Capa
+## S1: Capa
 
-**Visual:** imagem — raio-x estilizado de um arquivo de código (referência a "abrir o
-capô").
+**Visual:** `img/gif-06-cronometro-pontos.gif` à direita (cronômetro do quiz contando
+de 20 a 0 e a pontuação caindo de 1000 pra 500).
 
-`SEMANA 5`
-`</ENGENHARIA DE SOFTWARE PARA DESENVOLVIMENTO COM IA>`
+`SEMANA 5` · tag `</ENGENHARIA DE SOFTWARE NA ERA DA IA>`
 
-Subtítulo: "Vocês vão criticar o próprio código antes de eu dar nome pra isso."
+Subtítulo: "Clean code, DDD e spec. Hoje a gente escreve o quiz da PDA."
 
-Notas: `[00:00–00:02] Hoje ninguém decora teoria de DDD. Hoje vocês diagnosticam o que o
-agente fez de errado no código de vocês mesmos, e só depois eu dou nome pra isso.`
-
----
-
-## S2 — `</HOJE>`
-
-**Visual:** diagrama — barra horizontal com os 7 blocos coloridos da tabela do
-`ROTEIRO-FACILITADORA.md`, destacando os dois blocos de Lab em amarelo.
-
-Kicker: `> LINHA DO TEMPO — AULA 1`
-
-1. Giro das IAs — 10 min
-2. Recap ativo (semana 4: MCP server) — 15 min
-3. Teoria + Demo 1: diagnosticar antes de nomear — 30 min
-4. Lab 1 — diagnóstico com o checklist — 15 min
-5. Teoria + Demo 2: DDD estratégico como resposta estrutural — 20 min
-6. Lab 2 — linguagem ubíqua + candidatos a bounded context — 25 min
-7. Fechamento — 5 min
-
-ref: roteiro completo em `ROTEIRO-FACILITADORA.md`
-
-Notas: `[00:02–00:06] Duas partes hoje: primeiro vocês apontam o que está ruim no
-próprio código, depois eu dou o vocabulário pra decidir onde a fronteira deveria
-estar.`
+Notas: `[00:00–00:01]` "O projeto de hoje é o Kahoot que vocês jogaram semana passada,
+só que nosso. E a primeira coisa que eu vou fazer é pedir mal pro agente."
 
 ---
 
-## S3 — `</COMO ACOMPANHAR>`
+## S2: `</HOJE>`
 
-**Visual:** ícone leve — checklist com 2 itens marcáveis (MCP server aberto / bloco
-assíncrono de qualidade de código concluído).
+**Visual:** diagrama com shapes: barra horizontal com os 8 blocos da tabela de tempo,
+LAB 1 e LAB 2 em amarelo.
 
-1. Traga seu MCP server da semana 4 aberto — ou o `starter/repo-plantado/`, se não
-   tiver nada rodando.
-2. O bloco assíncrono de qualidade de código concluído é pré-requisito do Lab 2.
-3. `MÃO NA MASSA` é quando eu paro de falar e você faz.
+Kicker: `› AULA 9`
 
-ref: `GUIA-DO-ALUNO.md`
+Linha de baixo da barra: "Você sai daqui com: um glossário do seu projeto, uma fronteira
+desenhada e uma spec validada por ferramenta."
 
-Notas: `[00:06–00:10] Quem não tem o MCP server rodando, sem problema — usa o repo
-plantado. O que não dá é chegar no Lab 1 sem nenhum código pra abrir.`
+Notas: `[00:01–00:02]` mostrar onde estão os dois labs. "Dos 120 minutos, 40 são de
+vocês."
 
 ---
 
-## S4 — Recap — `</SEMANA PASSADA>`
+## S3: `</GIRO DAS IAS>`
 
-**Visual:** GIF descrito — alguém sacudindo uma caixa fechada, tentando adivinhar o que
-tem dentro pelo som (humor leve, tema "funciona mas não sei o que tem dentro").
+**Visual:** `_facilitadora/img-ref/ref-bockeler-sdd-visao-geral.png` (Birgitta Böckeler, Thoughtworks:
+memory bank à esquerda, agente no meio, specs à direita).
 
-Kicker: `BLOCO 2 · RECAP ATIVO`
+Kicker: `› GIRO DAS IAS`
 
-Frase-âncora:
-> A TOOL FUNCIONA.
-> NINGUÉM PERGUNTOU
-> SE O CÓDIGO DELA É BOM.
+Uma notícia sugerida pra abrir (o resto do giro é seu): "A Thoughtworks testou três
+ferramentas de spec-driven development (Kiro, spec-kit e Tessl) e publicou o que achou.
+Spoiler: a crítica principal é excesso de markdown pra revisar. A gente volta nisso no
+S33."
 
-1. Sorteio de 3 alunos (ver roteiro): prompt injection direta vs. indireta, o
-   `DECISAO-ESCOPO.md`, quiz relâmpago de supply chain de MCP.
-2. Gancho pra hoje: semana passada vocês construíram uma tool que funciona — ninguém
-   perguntou ainda se o código dela é bom.
+`ref: martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html`
 
-Notas: `[00:10–00:25] Semana passada vocês construíram uma tool que funciona. Ninguém
-perguntou ainda se o código dela é bom. Hoje, é essa a pergunta.`
+Notas: `[00:02–00:05]` 3 minutos, uma notícia. Hoje o giro é curto porque o Bloco 3 é
+longo.
 
 ---
 
-## S5 — `MÃO NA MASSA` — Demo 1, Passo 1: código de um colega, sem nome técnico ainda
+## S4: `</RECAP>`
 
-**Visual:** nenhum — a tela compartilhada em tempo real do `src/` de um colega é o
-próprio recurso visual deste slide.
+**Visual:** 3 cards (`01 / [S2]`, `02 / [S3]`, `03 / [S4]`), cada um com a frase-âncora
+da semana.
 
-Kicker: `DEMO 1 · PASSO 1`
+Kicker: `› RECAP ATIVO · SORTEIO`
 
-> O QUE TE INCOMODA AQUI,
-> MESMO SEM SABER
-> EXPLICAR POR QUÊ?
+- `01 / [SEMANA 2]` **"Contexto é mesa de trabalho."** Pergunta: "O que acontece com a
+  resposta do modelo quando a mesa está lotada?"
+- `02 / [SEMANA 3]` **"Até você contar pra ela."** Pergunta: "Onde você conta pro
+  agente uma coisa que ele precisa saber em toda sessão?"
+- `03 / [SEMANA 4]` **"Skill ensina. Tool faz."** Pergunta: "Uma skill carrega inteira
+  no começo da sessão?"
 
-Deixe 2–3 respostas no chat. Não corrija, não complete — só colete.
-
-Notas: `[00:25–00:33] Não dê nome nenhum ainda. Só pergunte: o que incomoda? Colete
-2 ou 3 respostas no chat sem corrigir e sem completar (ver ROTEIRO-FACILITADORA.md,
-Demo 1, Passo 1).`
-
----
-
-## S6 — `</O CHECKLIST>` — nomeando o que a turma já viu
-
-**Visual:** imagem — print real do `starter/checklist-sinais-codigo-ia.md` projetado
-(artefato do curso, não mockup).
-
-Frase-âncora:
-> A INTUIÇÃO DE VOCÊS
-> JÁ ESTAVA CERTA.
-
-1. **Abstraction Bloat** — o que a turma acabou de ver no código do colega. É o
-   mergulho de hoje, começa no próximo slide.
-2. Duplicação em vez de reuso.
-3. Mascaramento de erro.
-4. API ou biblioteca alucinada.
-5. Defensividade sem necessidade.
-6. Fronteira dissolvida.
-
-ref: `starter/checklist-sinais-codigo-ia.md`
-
-Notas: `[00:33–00:40] Passe pelas 6 categorias rapidamente, ligando cada uma ao que a
-turma acabou de apontar no código do colega — "você disse 'parece que faz coisa
-demais' — isso tem nome". O objetivo é o aluno perceber que a intuição dele já estava
-certa; o checklist só dá vocabulário.`
+Notas: `[00:05–00:13]` sortear 3 pessoas, uma por card. Respostas esperadas: (1) cai na
+Dumb Zone, o modelo esquece instrução do começo; (2) `CLAUDE.md`/`AGENTS.md`; (3) não,
+só o nome e a descrição carregam no início, o resto quando é chamada (progressive
+disclosure: revelar aos poucos). Fechar: "Hoje essas três respostas viram o motivo de
+escrever spec. Guardem."
 
 ---
 
-## S7 — `</ABSTRACTION BLOAT>` — o guarda-chuva
+## S5: Fio condutor
 
-**Visual:** diagrama novo — uma caixa grande rotulada "ABSTRACTION BLOAT" com 4 setas
-saindo pra 4 caixinhas tracejadas, ainda sem nome (os 4 sinais que vêm nos próximos
-slides).
+**Visual:** `_facilitadora/img-ref/ref-wynne-example-mapping-cartoes.jpg` à direita (cartões coloridos e
+canetas, foto de Matt Wynne, Cucumber).
 
-Frase-âncora:
-> ESTRUTURA PROPORCIONAL
-> À INCERTEZA,
-> NÃO AO PROBLEMA.
+Tag `</PRONTO É O QUE ESTÁ ESCRITO>`
 
-1. O modelo cria estrutura — classes, camadas, arquivos, interfaces — proporcional à
-   sua incerteza sobre o problema, não à complexidade real dele.
-2. Quanto menos claro o pedido, mais camada genérica aparece: camada genérica "parece"
-   cobrir mais casos, e o modelo não paga o custo de manter aquilo depois.
-3. Isso aparece de 4 jeitos concretos no código de vocês — os próximos 4 slides, um
-   sinal por vez.
+Frase de apoio: "Se o critério de pronto só existe na sua cabeça, o agente escolhe um.
+Hoje vocês vão ver qual ele escolhe."
 
-ref: `starter/checklist-sinais-codigo-ia.md` (Categoria 1)
+`ref: cucumber.io/blog/bdd/example-mapping-introduction`
 
-Notas: `[00:40–00:41:30] O padrão que vocês acabaram de nomear em código de vocês tem
-nome: Abstraction Bloat. Vou mostrar os 4 jeitos exatos que ele aparece.`
+Notas: `[00:13–00:15]` frase da semana. Repetir nas transições dos slides S25, S38 e S48.
 
 ---
 
-## S8 — `</SINAL 1 DE 4 · CLASSE DEUS>`
+## BLOCO 1: o que o agente faz com pedido vago (0:15–0:35)
 
-**Visual:** bloco de código real, estilo terminal/card — trecho do checklist, categoria
-1.1.
+## S6: O projeto da demo: quiz ao vivo da PDA
 
-Frase-âncora:
-> UM ARQUIVO.
-> CINCO RESPONSABILIDADES
-> QUE NÃO TÊM NADA A VER.
+**Visual:** terminal com a árvore do repo.
+
+Kicker: `› O PROJETO`
+
+```text
+demo-quiz-pda/
+|-- src/
+|   |-- banco/perguntas.js       # a facilitadora escreve e publica o Quiz
+|   |-- partida/sala.js          # Sala, PIN, apelido
+|   |-- partida/rodada.js        # Rodada, Cronômetro, Resposta
+|   |-- partida/placar.js
+|   `-- diagnostico/relatorio.js # o que a turma mais errou
+|-- tests/                       # node --test, zero dependência
+`-- CLAUDE.md
+```
+
+Lado direito, 3 linhas: "**Hoje:** Resposta certa vale 1 ponto." / "**Pedido:** quem
+responde mais rápido ganha mais." / "**Igual ao Kahoot** que a gente jogou na semana 4."
+
+Notas: `[00:15–00:17]` "É pequeno de propósito. Quatro testes passando. Os nomes das
+pastas já são do domínio: isso vai fazer diferença daqui a pouco."
+
+---
+
+## S7: Demo 1: o pedido vago
+
+**Visual:** terminal com o comando e o prompt.
+
+Kicker: `› DEMO 1 · AO VIVO`
+
+```bash
+cd demo-quiz-pda
+claude
+```
+
+```text
+adiciona pontuação por velocidade no quiz
+```
+
+Linha de baixo: "Antes de rodar: o que vocês acham que ele vai fazer com uma resposta que
+chega depois do tempo acabar?"
+
+Notas: `[00:17–00:20]` colar o prompt exatamente assim, sem nada além. Aceitar as edições.
+Enquanto roda, pedir palpite no chat pra pergunta do slide. Plano B: abrir
+`_facilitadora/plano-b/pedido-vago/diff.txt` e `saida.txt`.
+
+---
+
+## S8: Código limpo, regra inventada
+
+**Visual:** `img/gif-12-pedido-vago-real.gif` (diff real + a linha de teste que trava 99 s
+= 500 pontos + a frase do agente).
+
+Kicker: `› O QUE VOLTOU`
+
+Notas: `[00:20–00:23]` **Este é o ponto em que dá errado de propósito**, e deu errado de
+verdade na preparação. O agente mexeu só em `src/partida/rodada.js` e no teste. O código
+está bem nomeado. O problema é outro: `Math.min(t, limite)` faz uma Resposta que chega aos
+99 segundos valer 500 pontos, e ele escreveu um teste garantindo isso. Ele também
+escolheu a escala sozinho: "Escolhi a escala 500–1000 por ser parecida com a do Kahoot."
+Perguntar: "Quem aqui ia perceber isso lendo o diff às 23h?" Se na sala o agente fizer
+diferente (recusar a Resposta atrasada, escolher outra escala), a lição é a mesma: ele
+**decidiu** uma regra que ninguém escreveu. Mostrar a decisão que ele tomou.
+
+---
+
+## S9: Prompt de diagnóstico
+
+**Visual:** terminal com o prompt.
+
+Kicker: `› COPIA E COLA`
+
+```text
+Não altere nenhum arquivo. Liste cada regra de negócio que você decidiu sem eu ter
+pedido: valores, limites, o que acontece fora do tempo, empates. Para cada uma, diga o
+arquivo, a linha e qual seria a alternativa.
+```
+
+Linha de baixo: "Você vai usar esse prompt no lab e no seu projeto. Ele não conserta
+nada. Ele mostra o que foi decidido por você."
+
+Notas: `[00:23–00:25]` rodar na mesma sessão da demo. O esperado é ele listar escala
+500–1000, clamp em `limite`, `t` negativo vira 0. Anotar no quadro as decisões.
+
+---
+
+## S10: Três lentes de clean code no diff
+
+**Visual:** terminal com o trecho real de `rodada.js` gerado na demo, com marcadores
+`// 1` `// 2` `// 3` ligados aos `steps` à direita.
+
+Kicker: `› CLEAN CODE`
 
 ```js
-// sinal: um arquivo, cinco responsabilidades que não têm nada a ver entre si
-class LeadManager {
-  validate(lead) { /* ... */ }
-  formatForDisplay(lead) { /* ... */ }
-  saveToDatabase(lead) { /* ... */ }
-  sendWelcomeEmail(lead) { /* ... */ }
-  logActivity(lead) { /* ... */ }
-  calculateLeadScore(lead) { /* ... */ }
+export const PONTOS_BASE = 500;                    // 1
+export const PONTOS_BONUS = 500;
+export function pontosPorVelocidade(t, limite) {   // 2
+  const restante = 1 - Math.min(Math.max(t, 0), limite) / limite;
+  return PONTOS_BASE + Math.round(PONTOS_BONUS * restante);
 }
+export function registrarResposta(rodada, jogadora, alternativa, t) { // 3
 ```
 
-**Por que o modelo produz isso:** o prompt raramente pede uma responsabilidade só —
-pede a feature inteira ("crie o fluxo de cadastro de lead"). Sem alguém dizendo onde a
-fronteira fica, um arquivo só é o caminho de menor resistência estatístico.
+Steps:
+1. **Nomeação.** `PONTOS_BONUS` é nome do agente ou da regra? Se a regra fala em
+   "Resposta certa vale de 500 a 1000", o nome no código devia ajudar a achar essa frase.
+2. **Tamanho de função.** Duas linhas, ótimo. Função curta esconde regra errada tão bem
+   quanto função longa.
+3. **Responsabilidade única.** `registrarResposta` registra, pontua e altera a Jogadora.
+   Quem recusa Resposta atrasada, se um dia existir?
 
-ref: `starter/checklist-sinais-codigo-ia.md` (1.1 — `God Class`)
-
-Notas: `[00:41:30–00:43] Isso é o que alguém de vocês chamou de "faz coisa demais" no
-Passo 1. Agora tem nome: Classe Deus.`
+Notas: `[00:25–00:28]` o ponto: clean code ajuda a **ler** a regra, não garante que a
+regra está certa. Por isso o resto da aula é sobre escrever a regra antes.
 
 ---
 
-## S9 — `</SINAL 2 DE 4 · MIRAGEM MODULAR>`
+## S11: Quando o repo é maior: Abstraction Bloat
 
-**Visual:** bloco de código real — árvore de arquivos, trecho do checklist, categoria
-1.2.
+**Visual:** `img/gif-01-abstraction-bloat.gif` (ilustração: a mesma regra de uma linha
+espalhada em 7 arquivos com Service, Strategy, Factory, Provider, Manager, Utils).
 
-Frase-âncora:
-> PARECE SEPARADO.
-> É O MESMO CÓDIGO,
-> CORTADO SEM CRITÉRIO.
+Kicker: `› O PADRÃO`
 
-```
-src/
-  leadService.js     // 40% do que devia estar em leadValidator.js
-  leadValidator.js    // 30% do que devia estar em leadService.js
-  leadHelper.js        // o resto, sem critério de onde ele deveria estar
-```
+Cards embaixo:
+- **Abstraction Bloat**: camada que não decide nada, só repassa.
+- **Mesmo padrão, outros nomes:** Clean Architecture Paradox, Abstraction Illusion. Nomes
+  usados em artigos e neste curso; não existe um termo padronizado na literatura.
+- **Dado:** a GitClear mediu, em 623 milhões de mudanças (2023–2026), blocos duplicados
+  +81% e refatoração −70%.
 
-**Por que o modelo produz isso:** quando você pede "separa isso em arquivos menores", o
-modelo otimiza pra "arquivo menor" (uma métrica de linha de código), não pra "fronteira
-que faz sentido pro domínio" — porque a segunda exige saber o domínio, e a primeira é
-sintática.
+`ref: gitclear.com/the_ai_code_quality_maintainability_gap · arxiv.org/html/2605.02741v1`
 
-ref: `starter/checklist-sinais-codigo-ia.md` (1.2 — `Modular Mirage`)
-
-Notas: `[00:43–00:44:30] Arquivo separado não é sinônimo de responsabilidade separada.
-É o mesmo bloat, só que fatiado.`
+Notas: `[00:28–00:30]` "No nosso repo pequeno, com pasta e nome de domínio, ele não
+inchou. Em repo sem fronteira, com `utils/` e `helper.js`, é isso que aparece. Vocês viram
+o `repo-plantado` da semana passada." Ser honesta: o GIF é ilustração.
 
 ---
 
-## S10 — `</SINAL 3 DE 4 · CAMADA DE PASSAGEM>`
+## S12: Os 6 sinais pra caçar
 
-**Visual:** bloco de código real — trecho do checklist, categoria 1.3.
+**Visual:** grade de 6 cards numerados.
 
-Frase-âncora:
-> ZERO LÓGICA PRÓPRIA.
-> É UM ALIAS CARO.
+Kicker: `› CHECKLIST · starter/checklist-sinais-codigo-ia.md`
+
+1. **Abstraction Bloat** (Classe Deus, Miragem Modular, Camada de Passagem, nome genérico)
+2. **Duplicação** em vez de reuso
+3. **Mascaramento de erro** (`catch` vazio, `|| 0`)
+4. **API ou biblioteca alucinada**
+5. **Defensividade sem necessidade** (`if` pra caso que não existe)
+6. **Fronteira dissolvida** (um arquivo resolvendo dois contextos)
+
+Linha de baixo: "O `Math.min` do S8 entra em qual? Em nenhum. Ele está **certo como
+código** e errado como regra. Checklist pega forma; regra só a spec pega."
+
+Notas: `[00:30–00:32]` passar rápido, o arquivo fica de referência pras semanas 7, 8 e 9.
+
+---
+
+## S13: Por que o agente decidiu sozinho
+
+**Visual:** `img/gif-04-mesa-de-trabalho.gif` (pedido vago: o agente lê tudo e a barra de
+contexto sobe pra Dumb Zone; pedido com spec: lê glossário, spec e uma pasta, fica na
+Smart Zone).
+
+Kicker: `› CONTEXT ENGINEERING`
+
+Três linhas:
+- **Lacuna vira média.** O que o prompt não diz, o modelo completa com o padrão mais
+  comum que ele viu. "Parecido com o Kahoot" é exatamente isso.
+- **Pedido vago enche a mesa.** Sem saber onde mexer, ele lê mais arquivo pra descobrir.
+  Mais token, menos atenção pra regra.
+- **Spec é contexto que você escolhe.** Glossário, critério e pasta certa entram; o resto
+  fica fora.
+
+Notas: `[00:32–00:35]` amarrar com a semana 2: "contexto é mesa de trabalho, não
+depósito". O GIF é ilustração de proporção. Fechar o bloco: "Pra escolher o que vai na
+mesa, preciso de duas coisas: saber onde o meu sistema se divide e saber dizer o que é
+pronto. A primeira é DDD."
+
+---
+
+## BLOCO 2: DDD estratégico no quiz (0:35–0:50)
+
+## S14: Bounded context, a definição
+
+**Visual:** `_facilitadora/img-ref/ref-fowler-bounded-context.png` (Martin Fowler: Sales Context e Support
+Context, com Customer e Product aparecendo nos dois).
+
+Kicker: `› DDD ESTRATÉGICO`
+
+Frase: "**Bounded context**: o pedaço do sistema onde cada palavra tem um significado só.
+Mesma palavra em outro pedaço pode ter outro significado, e tudo bem."
+
+Linha de baixo: "Eric Evans cunhou em 2003. Martin Fowler resume: um modelo único pro
+sistema inteiro não é viável quando o sistema cresce."
+
+`ref: martinfowler.com/bliki/BoundedContext.html · imagem via fabriciorissetto.com/blog/ddd-bounded-context`
+
+Notas: `[00:35–00:37]` apontar "Customer" e "Product" nos dois lados. "No quiz a palavra
+que se repete é Resposta. Já já."
+
+---
+
+## S15: Subdomínios do quiz
+
+**Visual:** 3 cards em colunas, o Núcleo em amarelo.
+
+Kicker: `› ONDE GASTAR SPEC`
+
+- `01 / [NÚCLEO]` **Diagnóstico da Turma.** As 3 perguntas que a turma mais errou, pra
+  facilitadora voltar nelas. É o motivo de a PDA ter um quiz próprio em vez de usar o
+  Kahoot. **Spec detalhada, com cenário pra cada regra.**
+- `02 / [SUPORTE]` **Partida ao vivo e Banco de Perguntas.** Precisam existir e funcionar
+  bem, mas o Kahoot já resolve parecido. **Spec das regras que mudam ponto e tempo.**
+- `03 / [GENÉRICO]` **Login, PIN, QR code, hospedagem.** Todo sistema tem. **Usa
+  biblioteca ou serviço pronto, spec de uma linha.**
+
+`ref: fullcycle.com.br/domain-driven-design (subdomínios num streaming estilo Netflix)`
+
+Notas: `[00:37–00:39]` pergunta pra turma: "No projeto de vocês, o que é núcleo? O que
+faria alguém usar o seu e não o concorrente?" Ouvir 2 respostas.
+
+---
+
+## S16: Uma palavra, três significados
+
+**Visual:** `img/gif-02-resposta-tres-sentidos.gif`.
+
+Kicker: `› LINGUAGEM UBÍQUA`
+
+Frase embaixo: "**Linguagem ubíqua**: o mesmo vocabulário no código, no teste, no prompt
+e na conversa com quem pede a feature. Dentro de um contexto."
+
+`ref: martinfowler.com/bliki/UbiquitousLanguage.html`
+
+Notas: `[00:39–00:41]` "Se eu peço 'mostra as respostas da Partida', o agente entende
+qual dos três? E se eu mudar o gabarito no Banco, as Respostas da Partida que já
+aconteceram mudam?"
+
+---
+
+## S17: O glossário do quiz
+
+**Visual:** 3 cards, um por contexto, com os termos em mono amarelo.
+
+Kicker: `› GLOSSÁRIO`
+
+- **Banco de Perguntas** `src/banco/`: `Quiz` (rascunho ou publicado), `Pergunta`,
+  `Alternativa` (sempre 4), `Gabarito`. Não sabe de tempo, pontos nem Jogadora.
+- **Partida ao vivo** `src/partida/`: `Sala`, `PIN`, `Jogadora` (apelido, não é aluna
+  cadastrada), `Rodada`, `Cronômetro`, `Resposta` (alternativa + tempo `t`), `Placar`,
+  `Pódio`.
+- **Diagnóstico da Turma** `src/diagnostico/`: `Taxa de acerto`, `Pergunta crítica`. Só lê
+  o resultado da Partida.
+
+Notas: `[00:41–00:43]` "Jogadora e aluna são palavras diferentes de propósito: na
+Partida ninguém faz login. Se um dia o Diagnóstico precisar saber quem é a aluna, essa
+ligação é uma decisão de fronteira, e vai pra spec."
+
+---
+
+## S18: A fronteira no código: a Rodada congela a Pergunta
+
+**Visual:** terminal com o código real do demo + o teste.
+
+Kicker: `› FRONTEIRA DE VERDADE`
 
 ```js
-// sinal: zero lógica própria — é um alias caro
-class LeadHandler {
-  handle(lead) {
-    return this.leadService.process(lead);
-  }
+// src/partida/rodada.js
+export function iniciarRodada(pergunta, limite = 20) {
+  return { pergunta: structuredClone(pergunta), limite, respostas: [] };
 }
+
+// tests/partida.test.js
+test("a Rodada congela a Pergunta", () => {
+  const rodada = iniciarRodada(p);
+  p.gabarito = 3;
+  assert.equal(rodada.pergunta.gabarito, 0);
+});
 ```
 
-**Por que o modelo produz isso:** padrões de arquitetura enterprise (service, handler,
-repository) aparecem muito no material de treino como "boa prática" — o modelo replica
-a forma do padrão mesmo quando o problema não tem escala pra justificar a camada.
+Linha de baixo: "A Partida guarda uma **cópia** da Pergunta. Corrigir o gabarito no Banco
+durante a aula não muda a Rodada que está rolando."
 
-ref: `starter/checklist-sinais-codigo-ia.md` (1.3 — Camada de Passagem)
-
-Notas: `[00:44:30–00:46] Pergunte: o que essa classe faz que a de baixo não fazia? Se a
-resposta for "nada", é isso.`
-
----
-
-## S11 — `</SINAL 4 DE 4 · NOMEAÇÃO GENÉRICA>`
-
-**Visual:** diagrama novo — a lista de nomes genéricos do checklist, cada palavra
-riscada uma a uma, com seta apontando pra frase final.
-
-Frase-âncora:
-> NOME GENÉRICO =
-> NINGUÉM DECIDIU
-> DE QUEM É AQUELE CÓDIGO.
-
-`Manager` · `Handler` · `Processor` · `Util` · `Helper` · `Service` · `Data`
-
-1. Nenhum desses nomes vem do vocabulário do seu domínio — vêm do vocabulário de "como
-   construir software em geral".
-2. **Por que o modelo produz isso:** esses nomes são o denominador comum estatístico de
-   qualquer sistema, então são o palpite mais seguro quando o modelo não sabe o domínio
-   de verdade.
-3. Ponte direta: é aqui que este checklist se conecta com DDD estratégico — linguagem
-   ubíqua é o antídoto pra este sinal específico.
-
-ref: `starter/checklist-sinais-codigo-ia.md` (1.4)
-
-Notas: `[00:46–00:47] Contem no código de vocês mesmos: quantos arquivos do seu src/
-têm uma dessas palavras no nome? Guardem o número — ele volta no Lab 1.`
+Notas: `[00:43–00:45]` este é o DDD que não fica vago: uma linha (`structuredClone`) e um
+teste dizem onde um contexto termina. Perguntar: "E se a facilitadora quiser corrigir o
+gabarito e recalcular os pontos? É regra de qual contexto?" (Resposta: Partida, e precisa
+de spec própria.)
 
 ---
 
-## S12 — `</ABSTRACTION BLOAT>` — o nome, com dado
+## S19: Mapa de contextos do quiz
 
-**Visual:** gráfico de barras simples — duplicação vs. refatoração, 2022 → hoje.
+**Visual:** diagrama com shapes. Três caixas na horizontal com setas amarelas e verbos;
+uma quarta caixa cinza embaixo.
 
-Frase-âncora:
-> NÃO É IMPRESSÃO DE VOCÊS.
-> É PADRÃO MEDIDO
-> EM MILHÕES DE LINHAS.
+Kicker: `› CONTEXT MAP`
 
-1. Duplicação de código subiu de 8,3% (2020) pra 12,3% (2024) em 211 milhões de linhas
-   analisadas.
-2. Entre 2023–2026: duplicação +81%, refatoração -70%, a proporção
-   duplicação:refatoração virou de 1:2 pra 5:1.
-3. Um paper acadêmico já nomeou os padrões que vocês acabaram de ver: "God Class
-   Syndrome", "Modular Mirage".
-4. **Não existe métrica única oficial de "Abstraction Bloat"** — esse nome é do curso;
-   os dados são sinal indireto forte, não prova fechada. Se alguém te vender uma
-   ferramenta que mede isso com precisão, desconfie.
-
-ref: `gitclear.com/ai_assistant_code_quality_2025_research` ·
-`gitclear.com/the_ai_code_quality_maintainability_gap` · `arxiv.org/html/2605.02741v1`
-
-Notas: `[00:47–00:48:30] Digam o limite do dado na cara: o nome é nosso, os números são
-sinal indireto publicado por quem audita código em escala.`
-
----
-
-## S13 — `</ABSTRACTION BLOAT>` — o sinal observável
-
-**Visual:** diagrama novo — 3 mini-cards lado a lado, um por item da lista abaixo.
-
-Frase-âncora:
-> SEM MÉTRICA OFICIAL,
-> MAS COM 3 SINAIS
-> QUE VOCÊ OBSERVA SOZINHO.
-
-1. **Razão duplicação : refatoração** no seu histórico de commits — duplicar mais do
-   que extrai é acumular bloat sem perceber.
-2. **Linhas por método/arquivo crescendo sem o domínio ter crescido** — se a feature é
-   a mesma de duas semanas atrás mas o arquivo dobrou, pergunte por quê.
-3. **Nomes genéricos por arquivo** — conte quantos arquivos do seu `src/` têm os nomes
-   do slide anterior. Não é proibido — é um contador de atenção.
-
-ref: `starter/checklist-sinais-codigo-ia.md` (seção final)
-
-Notas: `[00:48:30–00:50] Isso é o que vocês vão aplicar no Lab 1, daqui a pouco: não
-tem ferramenta que faça essa leitura por vocês — é observação disciplinada, toda vez
-que vocês revisam um diff.`
-
----
-
-## S14 — `</O ERRO DE PROPÓSITO>` — o que quebra
-
-**Visual:** nenhum — demo ao vivo pedindo pro agente "adicionar um campo" num arquivo
-já bloated de um aluno voluntário (ou no `repo-plantado`).
-
-Kicker: `DEMO 1 · O AGENTE NÃO VAI SE RECUSAR A PIORAR`
-
-> PEDIMOS "ADICIONA UM CAMPO."
-> VEJAM O QUE ELE EMPILHA.
-
-Notas: `[00:50–00:52:30] Peça, ao vivo, pro Claude Code "adicionar um campo novo" num
-arquivo já bloated. Deixe o agente responder. Na maioria dos casos ele vai adicionar
-mais uma camada em vez de perguntar se aquilo deveria estar ali.`
-
----
-
-## S15 — `</O ERRO DE PROPÓSITO>` — o porquê
-
-**Visual:** nenhum — slide de debrief, ainda com a tela do agente visível ao fundo.
-
-Frase-âncora:
-> ELE NÃO VAI SE RECUSAR
-> A PIORAR SEU CÓDIGO.
-> SÓ VOCÊ DECIDE ISSO.
-
-1. Ele fez o bloat crescer porque foi isso que pedimos, sem restrição nenhuma.
-2. Ele não pondera se aquela camada deveria existir — só executa o pedido do jeito
-   mais direto.
-3. Isso prepara o Lab 1: marcar o sinal é decisão de vocês, não do agente.
-4. Ponte pro Bloco 2: a fronteira que falta é exatamente o que a linguagem de DDD
-   estratégico nomeia.
-
-Notas: `[00:52:30–00:55] Ele fez o bloat crescer porque foi isso que pedimos, sem
-restrição. Ele não vai se recusar a piorar seu código — só vocês decidem isso.`
-
----
-
-## S16 — `MÃO NA MASSA` — LAB 1
-
-**Visual:** ícone — lupa sobre um cronômetro de 15 min (card de lab).
-
-Kicker: `> LAB 1 — 15 MIN`
-`</DIAGNÓSTICO>`
-
-1. Abram o próprio MCP server da semana 4 (ou `starter/repo-plantado/`, se não
-   tiverem nada rodando).
-2. Marquem, no chat ou num arquivo `DIAGNOSTICO.md`, quantos dos 6 sinais do
-   checklist aparecem, com número de linha.
-3. **Não conserta nada.** O objetivo é só apontar.
-4. Ponto de julgamento: decidir se um sinal encontrado é grave o suficiente pra anotar,
-   ou é ruído — o checklist não pontua sozinho, quem lê o código decide.
-
-ref: `GUIA-DO-ALUNO.md`
-
-Notas: `[00:55–01:10] Instrução única: marquem os sinais, não consertem nada.`
-
----
-
-## S17 — Virada de bloco
-
-**Visual:** nenhum — frase-âncora sozinha, marcador de virada de bloco.
-
-> VOCÊS JÁ SABEM
-> DIAGNOSTICAR.
-> FALTA O VOCABULÁRIO
-> PRA CORTAR A FRONTEIRA.
-
-Notas: `[01:10–01:10:30] Não é curso de DDD. É a ferramenta específica pra um problema
-específico que acabou de aparecer no Lab 1: código sem fronteira clara.`
-
----
-
-## S18 — `</LINGUAGEM UBÍQUA>` — cinco nomes, uma pessoa só
-
-**Visual:** diagrama novo — 5 cards com os 5 nomes abaixo, cada um com uma seta
-convergindo pra um ícone de pessoa só, no centro.
-
-Kicker: `BLOCO 3 · TEORIA + DEMO 2`
-
-Frase-âncora:
-> A MESMA PESSOA.
-> CINCO NOMES DIFERENTES.
-> NENHUM COMBINADO
-> COM O NEGÓCIO.
-
-```
-src/leadService.js     → function scoreLead(lead)
-src/contactForm.js     → function saveContact(contact)
-src/salesPipeline.js   → function moveProspect(prospect)
-src/crmSync.js         → function syncCliente(cliente)
-src/emailCampaign.js   → function notifyInteressado(interessado)
+```text
+[Banco de Perguntas] --publica Quiz--> [Partida ao vivo] --entrega Respostas--> [Diagnóstico da Turma]
+                                   [Acesso: PIN, QR code]  (genérico, biblioteca)
 ```
 
-1. `lead`, `contact`, `prospect`, `cliente`, `interessado` — cinco arquivos, cinco
-   nomes, a mesma pessoa que preencheu um formulário uma vez.
-2. Cada sessão com o agente escolheu o nome que "soava certo" naquele momento — sem
-   ninguém perguntar ao dono do negócio qual é a palavra dele.
+Linha de baixo: "Cada seta é um contrato. Mudar o que atravessa a seta é mudar dois
+contextos, e isso merece uma pergunta antes."
 
-Notas: `[01:10:30–01:13] Isso não é o sinal 1.4 de novo — 1.4 é sufixo técnico genérico
-(Manager, Handler). Isso aqui é o negócio inteiro sem uma palavra combinada.`
+Notas: `[00:45–00:46]` é o mesmo formato do board de Excalidraw da aula 10: caixas,
+seta com verbo.
 
 ---
 
-## S19 — `</LINGUAGEM UBÍQUA>` — o glossário que resolve
+## S20: Bounded context como cerca pro agente
 
-**Visual:** diagrama novo — tabela/glossário resolvendo os 5 nomes do slide anterior
-numa palavra só.
+**Visual:** `img/gif-03-agente-vazando.gif` (sem fronteira: edições vermelhas espalhadas
+nas 3 pastas; com contexto: cerca amarela em `src/partida/`, edições verdes só ali).
 
-Frase-âncora:
-> SE O DONO DO NEGÓCIO
-> NÃO ENTENDE A PALAVRA,
-> ELA NÃO É DO DOMÍNIO.
+Kicker: `› A CERCA`
 
-| nome encontrado no código | decisão |
-|---|---|
-| `lead`, `contact`, `prospect`, `cliente`, `interessado` | vira **`lead`** — é a palavra que o time comercial já usa fora do código |
-
-1. Termo cunhado por Eric Evans, popularizado por Fowler: linguagem ubíqua é a mesma
-   palavra que o dono do negócio usa, dentro do código.
-2. A linguagem evolui junto com o entendimento da equipe sobre o negócio — o glossário
-   não é definitivo, é o acordo de hoje.
-3. Conecta direto com o sinal 1.4: nome genérico geralmente significa que ninguém
-   decidiu de quem é aquele código; nome duplicado significa que ninguém combinou a
-   palavra certa.
-
-ref: `martinfowler.com/bliki/UbiquitousLanguage.html`
-
-Notas: `[01:13–01:15] Manager, Handler, Service — nenhuma dessas palavras existe no
-domínio de vocês. Existe no vocabulário de "como se constrói software em geral".`
+Notas: `[00:46–00:48]` "A primeira metade é ilustração de repo sem fronteira. A segunda
+aconteceu de verdade na preparação: com o glossário no contexto e 'mexa só em
+`src/partida/`', o agente parou e me perguntou se podia mexer em `tests/`, que fica fora
+da pasta. Isso a gente vê no S37."
 
 ---
 
-## S20 — `</BOUNDED CONTEXT>` — o nome
+## S21: Onde a cerca mora
 
-**Visual:** diagrama novo, pequeno — um ícone de medidor (`meter`) com duas etiquetas
-diferentes coladas nele, uma pro time de faturamento, outra pro time de manutenção de
-rede.
+**Visual:** terminal com `openspec/config.yaml` (conteúdo real do demo).
 
-Frase-âncora:
-> ONDE UMA PALAVRA
-> PARA DE SIGNIFICAR
-> UMA COISA.
-
-1. Sistema grande não tem um modelo único viável — Fowler é explícito sobre isso.
-2. Exemplo clássico do próprio Fowler: "meter" (medidor) significa coisas diferentes em
-   dois times de uma companhia elétrica.
-3. Cada bounded context tem sua própria linguagem ubíqua, internamente consistente.
-
-ref: `martinfowler.com/bliki/BoundedContext.html`
-
-Notas: `[01:15–01:18:30] Bounded context é onde uma palavra para de significar uma
-coisa e passa a significar outra.`
-
----
-
-## S21 — `</BOUNDED CONTEXT>` — o diagrama
-
-**Visual:** imagem — print real do `excalidraw/board-bounded-contexts.excalidraw`, o
-exemplo já preenchido (Domínio 1 do catálogo: Listagem de Perfis da PDA).
-
-1. **Contexto PERFIS** (dentro): termos `Aluno`, `Habilidade`, `Portfólio`,
-   `Depoimento` — cadastro, edição, dados privados do aluno.
-2. **Contexto VITRINE PÚBLICA** (dentro): termos `Visitante`, `Filtro`, `Card de
-   Perfil` — busca e exibição pública.
-3. **O que fica de fora de cada um:** PERFIS não faz busca pública; VITRINE PÚBLICA não
-   edita dado de aluno. A seta entre os dois é rotulada com o verbo da relação
-   (`consulta`).
-4. A mesma fronteira funciona pra outro domínio do catálogo (ex.: domínio 5, agente de
-   revisão de código) — troca-se o nome das caixas, a relação continua a mesma.
-5. Hoje vocês nomeiam 2 candidatos no próprio projeto (Lab 2). Vão desenhar isso de
-   verdade na aula 2 — não adianta o desenho aqui.
-
-ref: `excalidraw/board-bounded-contexts.excalidraw`
-
-Notas: `[01:18:30–01:22] Mostre o exemplo já preenchido do board. O que está dentro de
-cada caixa, e o que cruzar a fronteira quebraria.`
-
----
-
-## S22 — `</O QUE FICA DE FORA HOJE>` — DDD tático
-
-**Visual:** ícone leve — uma seta saindo do quadro apontando pra um card de link
-externo, sinalizando "fora do escopo hoje".
-
-Frase-âncora:
-> EXISTE.
-> NÃO É O QUE RESOLVE
-> O SEU PROBLEMA HOJE.
-
-Entidade, objeto de valor, agregado, repositório — isso é sobre como implementar
-**dentro** de um contexto que já existe. O problema de vocês hoje é que a fronteira nem
-existe ainda. Link pra quem quiser adiantar.
-
-ref: o material de DDD tático indicado no bloco assíncrono desta semana
-
-Notas: `[01:22–01:24] Existe uma segunda metade do DDD — isso é DDD tático. Não é isso
-que resolve o problema de vocês hoje.`
-
----
-
-## S23 — `MÃO NA MASSA` — Demo 2 ao vivo: separar por domínio, não por camada
-
-**Visual:** nenhum — kicker e demo ao vivo.
-
-Kicker: `DEMO 2 · AO VIVO`
-
-> SEPARA POR BOUNDED CONTEXT.
-> SEM ME DIZER
-> QUAL É A FRONTEIRA.
-
-Notas: `[01:24–01:25:30] Pegue o LeadManager do repo-plantado (ou o código do aluno da
-Demo 1) e pergunte ao Claude Code, ao vivo: "esse arquivo mistura mais de um domínio.
-Me ajuda a separar por bounded context, sem me dizer você mesmo qual é a fronteira —
-faça perguntas" (ver ROTEIRO-FACILITADORA.md, Demo 2, item 4).`
-
----
-
-## S24 — `</O ERRO DE PROPÓSITO 2>` — o que quebra
-
-**Visual:** GIF descrito — alguém organizando caixas por cor quando devia organizar por
-conteúdo (humor, tema "organização enganosa").
-
-Frase-âncora:
-> SEPARAR POR TIPO DE OPERAÇÃO
-> NÃO É SEPARAR
-> POR DOMÍNIO.
-
-O agente propôs: validação / persistência / notificação — uma fronteira técnica, não
-uma fronteira de domínio.
-
-Notas: `[01:25:30–01:27] Pare e nomeie: essa é uma fronteira técnica, não de domínio —
-ele separou por tipo de operação, não por significado de negócio.`
-
----
-
-## S25 — `</O ERRO DE PROPÓSITO 2>` — o porquê
-
-**Visual:** nenhum — slide de debrief.
-
-1. Isso não resolve o problema: `saveToDatabase` decidindo quando notificar continua lá
-   dentro, só mudou de arquivo.
-2. Só quem conhece o negócio decide se "quando notificar" é regra de outro domínio —
-   isso um agente não tem como saber.
-3. **Este é o ponto de julgamento indispensável da semana** — nomeado assim, sem
-   meio-termo.
-
-Notas: `[01:27–01:29] O domínio de "engajamento" vazando pra dentro do domínio de
-"cadastro de lead" — isso só um humano que conhece o negócio decide.`
-
----
-
-## S26 — `</BÔNUS · .claude/rules/>` (opcional, se sobrar tempo)
-
-**Visual:** bloco de código real — frontmatter `paths`.
-
-Frase-âncora:
-> REGRA POR PASTA,
-> AGORA QUE A PASTA
-> SIGNIFICA ALGO.
+Kicker: `› ATÉ VOCÊ CONTAR PRA ELA`
 
 ```yaml
----
-paths: ["src/vitrine/**"]
----
+context: |
+  Language: pt-BR
+  Bounded contexts (um por pasta):
+  - Banco de Perguntas (src/banco/): Quiz, Pergunta, Alternativa, Gabarito.
+  - Partida ao vivo (src/partida/): Sala, PIN, Jogadora, Rodada, Cronômetro,
+    Resposta, Placar, Pódio.
+  - Diagnóstico da Turma (src/diagnostico/): Taxa de acerto, Pergunta crítica.
+  Regras:
+  - Uma change mexe em um bounded context só. Se precisar de outro, pare e pergunte.
+  - Não crie Service, Manager, Factory, Provider, Helper ou Utils.
 ```
 
-Frontmatter `paths` escopa uma regra a um bounded context — visto em slide na semana 3,
-praticado pela primeira vez aqui, porque só agora existe fronteira pra escopar.
+Linha de baixo: "O mesmo texto vai no `CLAUDE.md` (pro TLC e pra qualquer sessão). A
+semana 3 continua valendo: o agente só sabe o que você escreveu."
 
-ref: `code.claude.com/docs/en/memory`
-
-Notas: `[01:29–01:30] Só se couber, sem forçar: dá pra ter uma regra por bounded
-context, tipo rules/vitrine.md com paths escopando pra aquela pasta.`
+Notas: `[00:48–00:50]` texto completo em `_facilitadora/contexto-glossario.txt`. "A
+última regra é a vacina contra o Abstraction Bloat do S11." Transição pro lab.
 
 ---
 
-## S27 — `MÃO NA MASSA` — LAB 2
+## LAB 1 (0:50–1:05)
 
-**Visual:** ícone — lupa sobre um cronômetro de 25 min (card de lab).
+## S22: `LAB 1`
 
-Kicker: `> LAB 2 — 25 MIN`
-`</LINGUAGEM + FRONTEIRA>`
+**Visual:** `labPanel` (metade amarela) + `_facilitadora/qa-gifs/gif-02-resposta-tres-sentidos-ultimo.png`
+pequeno à direita.
 
-1. Liste 5 termos do próprio domínio que um cliente leigo entenderia — sem `Manager`,
-   `Handler`, `Service` na lista.
-2. Aponte 2 candidatos a bounded context no próprio código — nem que seja um esboço.
-3. Escreva 1 frase: "hoje esses dois contextos estão misturados em
-   `<arquivo/função>`."
+`MÃO NA MASSA` · `LAB 1` · **Glossário e fronteira do seu projeto** · ⏱ 15 min ·
+`GLOSSARIO.md`
 
-ref: `GUIA-DO-ALUNO.md`
+Dica no rodapé: "Leia 5 minutos, escreva 10. O artigo é exemplo, o projeto é o seu."
 
-Notas: `[01:30–01:55] Isso é o material bruto que a aula 2 vai desenhar — não
-adiantem o desenho aqui, isso é da aula 2.`
+Notas: `[00:50–00:51]` explicar a divisão dos artigos (S23).
 
 ---
 
-## S28 — `</FECHAMENTO>`
+## S23: Leia um (5 min)
 
-**Visual:** nenhum.
+**Visual:** 4 cards com miniatura. Imagens: `_facilitadora/img-ref/ref-treinaweb-event-storming.jpg` no card
+3 e `_facilitadora/img-ref/ref-fowler-bounded-context.png` no card 2; cards 1 e 4 com o título do artigo em
+destaque.
 
-Recap por pergunta, não por exposição:
+Kicker: `› LEITURA · ÚLTIMO DÍGITO DO SEU NÚMERO NA CHAMADA`
 
-1. "O que é Abstraction Bloat?"
-2. "O que é bounded context?"
+- `0–2 /` **Locadora de veículos: 16 histórias viram glossário e contextos.** Douglas
+  Alonso, DDD na Prática parte 2. Leia "Linguagem ubíqua" e "Por que Financeiro não é um
+  contexto só". `douglasalonso.medium.com/ddd-na-prática-parte-2-ee3cedd26125`
+- `3–4 /` **"Produto" em Vendas e em Suporte.** Fabrício Rissetto, Bounded Context.
+  Curto, 3 diagramas. `fabriciorissetto.com/blog/ddd-bounded-context`
+- `5–7 /` **Post-its na parede: eventos, comandos e contextos.** TreinaWeb, O que é o
+  Event Storming (a legenda das cores) e, se sobrar tempo, as fotos do workshop da
+  Involves (`medium.com/involves-rocks/usando-ddd-e-event-storming-...`).
+  `treinaweb.com.br/blog/o-que-e-o-event-storming`
+- `8–9 /` **Núcleo, suporte e genérico num streaming.** Full Cycle, O que é DDD. Leia a
+  parte de design estratégico. `fullcycle.com.br/domain-driven-design`
 
-Vocês entraram hoje sabendo só que a tool funciona. Saem sabendo se o código dela é
-bom — e com o vocabulário pra decidir onde ele deveria terminar.
-
-Notas: `[01:55–01:56] Pergunte, não conte. A resposta certa é a deles, com as palavras
-deles.`
-
----
-
-## S29 — `</ATIVIDADE DE FIXAÇÃO>`
-
-**Visual:** ícone — checklist com o entregável marcado.
-
-A atividade de fixação da semana está em `ENTREGAVEL.md` — diagnóstico do próprio
-código + material de linguagem ubíqua e bounded context deste Lab 2.
-
-ref: `ENTREGAVEL.md`
-
-Notas: `[01:56–01:57] Quem terminou os dois labs já tem o material bruto do
-entregável — falta só organizar.`
+Notas: `[00:51–00:56]` cronometrar 5 minutos no telão. Links completos em
+`REFERENCIAS.md`.
 
 ---
 
-## S30 — `</AULA 2 · MODELAGEM COLETIVA>`
+## S24: Escreva (10 min)
 
-**Visual:** diagrama novo — 3 bonequinhos de cores diferentes lado a lado, cada cor
-representando um domínio do catálogo (trio cruzado).
+**Visual:** dois terminais lado a lado: o prompt à esquerda e o template à direita.
 
-Kicker: `> PRÓXIMA AULA`
+Kicker: `› COPIA E COLA`
 
-1. **Tema:** modelagem coletiva — vocês desenham, a facilitadora não desenha.
-2. **Formato:** trios cruzados por domínio diferente do catálogo (mecânica já
-   conhecida desde a semana 3); cada aluno duplica o próprio board Excalidraw.
-3. **O que trazer pronto:** os 2 candidatos a bounded context e os 5 termos de
-   linguagem ubíqua do Lab 2 de hoje, escritos.
-4. **Como os trios se formam:** sorteio cruzado — um colega de domínio diferente
-   enxerga fronteira que você, preso no seu próprio vocabulário, não vê.
+Prompt (o agente levanta os substantivos; quem decide o significado é você):
 
-Notas: `[01:57–01:58] Aula 2 é só desenho — tragam os 2 candidatos prontos, escritos,
-porque hoje vocês vão defender essa fronteira pros colegas.`
+```text
+Não altere nenhum arquivo. Leia o código do projeto e liste os substantivos de domínio
+que aparecem em nomes de pastas, arquivos, funções e variáveis. Para cada um, diga em
+quais arquivos aparece. Não sugira nomes novos e não explique o que eles significam.
+```
 
----
+Template `GLOSSARIO.md`:
 
-## S31 — `</O BOARD VAZIO>`
+```markdown
+# Glossário: <nome do projeto>
 
-**Visual:** imagem — screenshot real do `excalidraw/board-bounded-contexts.excalidraw`,
-as zonas ainda tracejadas (vazias), antes de qualquer aluno preencher.
+## Contexto 1: <nome> (pasta: src/<pasta>/)
+- **<Termo>**: <o que significa AQUI, em uma frase>
 
-Frase-âncora:
-> O ANDAIME É NOSSO.
-> O PRÉDIO É SEU.
+## Contexto 2: <nome> (pasta: src/<pasta>/)
+- **<Termo>**: <o que significa AQUI>
 
-1. Legenda + o exemplo do Domínio 1 já vêm preenchidos — é o único desenho que a
-   facilitadora entrega pronto.
-2. `MEU BOUNDED CONTEXT 1` e `2` (caixas tracejadas) + `linguagem ubíqua deste
-   contexto` sob cada uma — a turma preenche na Rodada de trios 1.
-3. Uma seta tracejada entre os dois contextos, com o verbo da relação — ajustada ao
-   vivo pelo dono do board durante as plenárias.
-4. `MEU BOUNDED CONTEXT 3` (opcional) e o bônus `.claude/rules/` — só no ajuste final,
-   se sobrar tempo.
+## Palavra que muda de sentido entre os dois
+- **<Termo>**: no contexto 1 é ___; no contexto 2 é ___
 
-ref: `excalidraw/board-bounded-contexts.excalidraw`
+## Núcleo do meu projeto
+<o que faria alguém usar o meu e não o concorrente>
+```
 
-Notas: `[01:58–01:59] Isso é o andaime vazio que vocês vão preencher na aula 2. Eu não
-abro esse arquivo pra desenhar nada — quem arrasta caixa é sempre o dono do projeto.`
+`yBar` **Pronto quando:** 2 contextos com pasta, 3 termos cada, e **uma** palavra que
+muda de sentido entre eles.
+
+Notas: `[00:56–01:05]` circular. Quem não acha palavra que muda de sentido: perguntar
+"usuário" (quem compra × quem administra), "status", "item". Projeto sem pasta separada
+ainda: escrever a pasta que **deveria** existir. Escolher 2 glossários pra mostrar no
+fechamento.
 
 ---
 
-## S32 — `</PRÓXIMOS PASSOS>`
+## BLOCO 3: critério de aceite, BDD, OpenSpec e TLC (1:05–1:30)
 
-**Visual:** nenhum.
+## S25: Critério de aceite é a definição de pronto
 
-1. Aula 2 é laboratório puro — sem slide de apoio além dos 3 de regras do jogo.
-2. Entregável final: ver `ENTREGAVEL.md`.
-3. Vocês saem de hoje com o diagnóstico. Saem da aula 2 com o mapa — e vão usar esse
-   vocabulário de novo, sem reexplicação, a partir da semana 6.
+**Visual:** `_facilitadora/img-ref/ref-wynne-example-mapping-mesa.png` (mesa com cartões: história
+amarela, regras azuis, exemplos verdes, perguntas rosa).
 
-Notas: `[01:59–02:00] Aula 2 é só desenho — tragam os 2 candidatos prontos. Hoje vocês
-pararam de só perguntar se a tool funciona e começaram a perguntar se o código dela é
-bom.`
+Kicker: `› PRONTO É O QUE ESTÁ ESCRITO`
+
+Frase: "**Critério de aceite**: a condição que precisa ser verdade pra feature contar como
+pronta. Escrito antes do código, testável, na linguagem do glossário."
+
+`ref: medium.com/@lilianborbadeoliveira (critérios de aceitação: checklist de regra ×
+cenário)`
+
+Notas: `[01:05–01:06]` voltar no S8: "O agente fez a feature 'pronta' segundo o critério
+dele."
 
 ---
 
-## AULA 2 (laboratório puro — só regras do jogo, inalterado)
+## S26: Example Mapping em 4 cores
 
-### A1. Capa
+**Visual:** 2 fotos: `_facilitadora/img-ref/ref-wynne-example-mapping-exemplo.jpg` (cartão verde com um
+exemplo concreto) e `_facilitadora/img-ref/ref-wynne-example-mapping-pergunta.jpg` (cartão rosa com
+pergunta).
 
-`SEMANA 5 · AULA 2 · MODELAGEM COLETIVA` — subtítulo: "Vocês desenham. Eu não desenho."
+Kicker: `› EXAMPLE MAPPING`
 
-### A2. `</COMO FUNCIONA HOJE>`
+- **Amarelo**: a história.
+- **Azul**: cada regra.
+- **Verde**: exemplos concretos de cada regra ("a Jogadora respondeu certo aos 10 s").
+- **Rosa**: o que ninguém sabe responder ainda. Pergunta rosa não vai pro agente
+  decidir.
 
-Trios cruzados por domínio · cada um duplica o próprio board · 25 min de trio, 15 min de
-plenária sorteada, repete · ninguém sai sem 2 bounded contexts nomeados. Imagem: o board
-Excalidraw vazio (as zonas tracejadas), pra todo mundo ver o que vai preencher.
+`ref: Matt Wynne, cucumber.io/blog/bdd/example-mapping-introduction`
 
-### A3. `</ROTEIRO DE PERGUNTAS DE FRONTEIRA>`
+Notas: `[01:06–01:07]` "É uma conversa de 25 minutos com post-it. Hoje vou fazer em
+um GIF."
 
-As 4 perguntas do `ROTEIRO-FACILITADORA.md` (seção "Roteiro de perguntas de fronteira"),
-projetadas fixas na tela durante as rodadas de trio, pra quem esquecer.
+---
 
-(Sem mais slides — o resto da aula é o Excalidraw de cada aluno, projetado ao vivo nas
-plenárias.)
+## S27: Example Mapping da pontuação
+
+**Visual:** `img/gif-05-example-mapping-quiz.gif`.
+
+Kicker: `› NO QUIZ`
+
+Notas: `[01:07–01:09]` ler as 3 perguntas rosa e perguntar à turma qual delas o agente
+do S8 respondeu sozinho (nenhuma explicitamente; ele decidiu o fora do tempo).
+
+---
+
+## S28: A regra em números
+
+**Visual:** `img/gif-06-cronometro-pontos.gif`.
+
+Kicker: `› EXEMPLOS VIRAM TESTE`
+
+Linha de baixo: "`round(1000 - 500 * t / limite)` · 0 s = 1000 · 10 s = 750 · 20 s = 500 ·
+20,3 s = recusada"
+
+Notas: `[01:09–01:10]` "Cada número desse é um cenário. Cenário é teste antes de existir
+teste."
+
+---
+
+## S29: Gherkin em português
+
+**Visual:** terminal com o arquivo `.feature`.
+
+Kicker: `› BDD · COPIA E COLA`
+
+```gherkin
+# language: pt
+Funcionalidade: Pontuação por velocidade na Partida ao vivo
+
+  Cenário: Resposta certa no primeiro segundo
+    Dado uma Rodada com Cronômetro de 20 segundos
+    Quando a Jogadora envia a Resposta certa aos 0 segundos
+    Então a Partida soma 1000 pontos ao Placar dela
+
+  Cenário: Resposta certa na metade do tempo
+    Dado uma Rodada com Cronômetro de 20 segundos
+    Quando a Jogadora envia a Resposta certa aos 10 segundos
+    Então a Partida soma 750 pontos ao Placar dela
+
+  Cenário: Resposta errada
+    Dado uma Rodada com Cronômetro de 20 segundos
+    Quando a Jogadora envia uma Resposta errada
+    Então a Partida soma 0 pontos
+
+  Cenário: Resposta depois do tempo
+    Dado uma Rodada com Cronômetro de 20 segundos
+    Quando a Resposta chega aos 20,3 segundos
+    Então a Partida recusa a Resposta e soma 0 pontos
+```
+
+Linha de baixo: "**Dado** o estado · **Quando** a ação · **Então** o resultado que dá pra
+conferir. Todo substantivo com inicial maiúscula está no glossário."
+
+`ref: dgosantos89.github.io/Gherkin-p1 (Gherkin em português, com exemplo ruim e
+corrigido)`
+
+Notas: `[01:10–01:12]` BDD (Behavior-Driven Development: desenvolvimento guiado por
+comportamento) aqui é só o formato. Não vamos instalar Cucumber. O texto é o mesmo que vai
+no prompt do S36.
+
+---
+
+## S30: O agente procura buraco, você responde
+
+**Visual:** terminal com o prompt.
+
+Kicker: `› COPIA E COLA`
+
+```text
+Leia os cenários abaixo. Não escreva cenários novos e não escreva código.
+Liste as perguntas que um dev faria antes de implementar: casos não cobertos, palavras
+que podem ser lidas de dois jeitos, números que faltam.
+
+<cole aqui seus cenários>
+```
+
+Linha de baixo: "As perguntas viram cartão rosa. Quem responde é quem conhece o negócio."
+
+Notas: `[01:12–01:13]` este é o uso bom do agente na spec: achar buraco. O ruim é deixar
+ele tapar.
+
+---
+
+## S31: O mesmo critério em três formatos
+
+**Visual:** `img/gif-07-tres-formatos.gif` (Gherkin, OpenSpec e EARS, com condição e
+resultado em amarelo).
+
+Kicker: `› TRÊS DIALETOS`
+
+Linha de baixo: "O OpenSpec escreve `SHALL` + `WHEN/THEN`. O TLC escreve EARS (Easy
+Approach to Requirements Syntax: requisito em 5 moldes fixos). O Spec Kit usa
+`Given/When/Then`. Quem sabe escrever o cenário à mão lê os três."
+
+Notas: `[01:13–01:14]` EARS volta na semana 6. Hoje é só reconhecer.
+
+---
+
+## S32: Por que spec em arquivo funciona
+
+**Visual:** diagrama com 4 caixas ligadas ao centro "spec", cada uma com a semana de
+origem.
+
+Kicker: `› CONTEXT ENGINEERING`
+
+- **Glossário** → o nome igual no prompt, no código e no teste deixa o agente achar o
+  arquivo certo com busca, sem ler o repo inteiro. (semana 2: mesa de trabalho)
+- **Bounded context** → diz quais pastas entram na mesa. (semana 2)
+- **Arquivo, não conversa** → a spec sobrevive ao `/clear` e à sessão de amanhã. (semana 3:
+  até você contar pra ela)
+- **Skill** → o OpenSpec e o TLC instalam skills em `.claude/skills/`; só carregam
+  inteiras quando você chama. (semana 4: progressive disclosure)
+
+Rodapé: "O TLC tem um teto escrito na skill: spec até ~5 mil tokens, contexto total
+abaixo de 40 mil (20% da janela)."
+
+`ref: .claude/skills/tlc-spec-driven/references/context-limits.md`
+
+Notas: `[01:14–01:15]` é o slide do porquê. Se só um slide do bloco ficar na cabeça
+deles, é este.
+
+---
+
+## S33: Três níveis de spec-driven
+
+**Visual:** `_facilitadora/img-ref/ref-bockeler-sdd-niveis.png` (spec-first, spec-anchored, spec-as-source).
+
+Kicker: `› UM POUCO DE CRÍTICA`
+
+- **Spec-first**: escreve a spec, gera o código, a spec fica pra trás.
+- **Spec-anchored**: a spec continua valendo depois da feature. O `archive` do OpenSpec
+  junta a change em `openspec/specs/`.
+- **Spec-as-source**: humano só edita spec. A Böckeler lembra que model-driven development
+  tentou isso e não pegou.
+
+Linha de baixo: "Custo: markdown demais pra revisar. A Böckeler usou o spec-kit numa
+feature pequena e comparou com 'usar uma marreta pra quebrar uma noz'."
+
+`ref: Birgitta Böckeler, martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html`
+
+Notas: `[01:15–01:16]` cortável. O ponto: ferramenta pesada pra mudança pequena é custo.
+O TLC tenta resolver isso pulando fases (S40).
+
+---
+
+## S34: Demo 2: instalar o OpenSpec
+
+**Visual:** terminal com comandos e saída real.
+
+Kicker: `› DEMO 2 · OPENSPEC · COPIA E COLA`
+
+```bash
+npm install -g @fission-ai/openspec@latest
+cd demo-quiz-pda
+openspec init --tools claude --language pt-BR
+```
+
+```text
+√ Setup complete for Claude Code
+6 skills and 6 commands in .claude/
+Config: openspec/config.yaml (schema: spec-driven)
+Getting started:
+  Start your first change: /opsx:propose "your idea"
+```
+
+Linha de baixo: "Node 20.19 ou mais novo. Funciona com Claude Code, Cursor, Copilot, Codex e outros:
+troque `claude` em `--tools`. Opt-out de telemetria: `OPENSPEC_TELEMETRY=0`."
+
+`ref: github.com/Fission-AI/OpenSpec · saída real, OpenSpec 1.14.0`
+
+Notas: `[01:16–01:17]` `--language pt-BR` faz os artefatos saírem em português e mantém
+`SHALL` e os títulos em inglês. Se o npm travar na rede da sala, trocar pra cópia já
+instalada.
+
+---
+
+## S35: O glossário entra na mesa do agente
+
+**Visual:** terminal com o comando e a saída real (o bloco `<project_context>` que o
+OpenSpec monta pro agente).
+
+Kicker: `› CONTEXT ENGINEERING NA PRÁTICA`
+
+```bash
+code openspec/config.yaml     # ou qualquer editor
+# cole o glossário embaixo de "context: |", com 2 espaços de recuo
+openspec new change placar-mais-legal
+mkdir -p openspec/changes/placar-mais-legal/specs/partida
+printf '## ADDED Requirements\n\n### Requirement: Placar melhor\nO placar deve ficar mais legal e mais rápido.\n' \
+  > openspec/changes/placar-mais-legal/specs/partida/spec.md
+openspec instructions proposal --change placar-mais-legal | head -30
+```
+
+```text
+<project_context>
+<!-- This is background information for you. Do NOT include this in your output. -->
+Language: pt-BR
+...
+Bounded contexts (um por pasta):
+- Banco de Perguntas (src/banco/): Quiz, Pergunta, Alternativa, Gabarito. ...
+- Partida ao vivo (src/partida/): Sala, PIN, Jogadora, Rodada, Cronômetro, ...
+...
+- Uma change mexe em um bounded context só. Se precisar de outro, pare e pergunte.
+</project_context>
+```
+
+Linha de baixo: "É isso que o agente recebe antes de escrever cada artefato. Vocês estão
+vendo a mesa por dentro."
+
+Notas: `[01:17–01:18]` colar o conteúdo de `_facilitadora/contexto-glossario.txt`. As
+3 linhas do meio criam uma change vaga de propósito ("vou precisar dela daqui a pouco"), que
+volta no S38. O `instructions` precisa de uma change existente pra mostrar o contexto.
+Saída real, OpenSpec 1.14.0.
+
+---
+
+## S36: O prompt do `/opsx:propose`
+
+**Visual:** terminal com o prompt inteiro.
+
+Kicker: `› COPIA E COLA · NO CLAUDE CODE`
+
+```text
+/opsx:propose pontuacao-por-velocidade
+
+Na Partida ao vivo, uma Resposta certa vale entre 500 e 1000 pontos, conforme a
+velocidade: round(1000 - 500 * t / limite). Resposta errada vale 0. Resposta que chega
+depois do fim do Cronômetro é recusada.
+
+Use estes cenários como critério de aceite. Não invente cenário novo sem me perguntar:
+
+<cole os 4 cenários do S29>
+
+Mexa só em src/partida/. Banco de Perguntas e Diagnóstico da Turma ficam fora do escopo.
+```
+
+Linha de baixo: "Regra em uma frase + cenários + cerca. Três partes."
+
+Notas: `[01:18–01:19]` o prompt inteiro (com os cenários já colados) está em
+`_facilitadora/p2-openspec.txt`. Leva de 1 a 3 minutos. Enquanto roda, ir pro S37 com o
+plano B aberto e comparar quando terminar.
+
+---
+
+## S37: O que voltou: 4 arquivos e uma pergunta
+
+**Visual:** terminal com a árvore criada e trechos reais da resposta do agente.
+
+Kicker: `› SAÍDA REAL`
+
+```text
+openspec/changes/pontuacao-por-velocidade/
+|-- proposal.md      # por que e escopo: só Partida ao vivo
+|-- specs/pontuacao-por-velocidade/spec.md   # 3 requisitos, 4 cenários
+|-- design.md        # a regra fica em registrarResposta, sem módulo novo
+`-- tasks.md         # 3 tarefas, cada uma com verificação
+```
+
+```text
+Decisões minhas que valem conferir:
+- t == limite: conta como dentro do tempo e vale 500. Só t > limite é recusada.
+- Resposta recusada: não entra em rodada.respostas. Assim o Diagnóstico
+  da Turma continua funcionando sem ser alterado.
+O que preciso de você: você pediu para mexer só em src/partida/, mas os
+testes ficam em tests/partida.test.js, fora dessa pasta.
+```
+
+Linha de baixo: "Compara com o S8: lá ele decidiu e não contou. Aqui ele decidiu pouco,
+contou o que decidiu e perguntou sobre a cerca."
+
+Notas: `[01:19–01:21]` **ponto de julgamento**: decidir com a turma se `t == limite`
+conta (votação rápida), e liberar `tests/`. Plano B:
+`_facilitadora/plano-b/openspec/saida-propose.txt`.
+
+---
+
+## S38: Quebra de propósito: spec vaga não passa
+
+**Visual:** `img/gif-10-openspec-validate.gif` (saída real: a change vaga leva ERROR, a da
+pontuação passa).
+
+Kicker: `› PRONTO É O QUE ESTÁ ESCRITO`
+
+A change vaga foi criada no S35. Ao vivo:
+
+```bash
+openspec validate placar-mais-legal
+openspec validate pontuacao-por-velocidade
+```
+
+Notas: `[01:21–01:22]` "Ele reclama de duas coisas: falta `SHALL` e falta cenário. Sem
+cenário não tem como saber se está pronto. A ferramenta só checa a forma; se a regra está
+certa, quem checa é você."
+
+---
+
+## S39: apply e archive
+
+**Visual:** `img/gif-08-openspec-fluxo.gif` à esquerda (fluxo inteiro, saída real) e
+`_facilitadora/img-ref/ref-openspec-dashboard.png` à direita (o `openspec view`).
+
+Kicker: `› COPIA E COLA`
+
+```text
+/opsx:apply pontuacao-por-velocidade
+```
+
+```bash
+npm test
+openspec archive pontuacao-por-velocidade -y
+```
+
+Linha de baixo: "Depois do archive, a spec vai pra `openspec/specs/` e passa a ser a
+referência da Partida. A próxima change é um delta em cima dela."
+
+`ref: saída real: 3/3 tasks, 8 testes passando · imagem: github.com/Fission-AI/OpenSpec`
+
+Notas: `[01:22–01:24]` na preparação, o `/opsx:archive` dentro do Claude Code parou e
+perguntou se sincronizava a spec principal. O comando de terminal com `-y` faz direto.
+Mostrar `openspec/specs/pontuacao-por-velocidade/spec.md` depois.
+
+---
+
+## S40: Demo 3: TLC spec-driven
+
+**Visual:** `img/gif-09-tlc-fases.gif` (SPECIFY, DESIGN, TASKS, EXECUTE, VERIFY; mudança
+pequena pula fases; verificador com contexto limpo).
+
+Kicker: `› DEMO 3 · TLC · COPIA E COLA`
+
+```bash
+npx @tech-leads-club/agent-skills install -s tlc-spec-driven -a claude-code
+```
+
+```text
+Use a skill tlc-spec-driven para especificar a feature "Pódio no fim da Partida":
+quando a última Rodada termina, a Partida mostra as 3 Jogadoras com mais pontos.
+
+Escreva os critérios de aceite em EARS, usando os termos do glossário do CLAUDE.md.
+Se encontrar um caso que a descrição não resolve, registre como pergunta em vez de
+decidir sozinha.
+
+Pare depois da fase SPECIFY e me mostre o spec.md antes de seguir.
+```
+
+Linha de baixo: "Uma skill só. Ela decide o tamanho: mudança pequena pula Design e Tasks.
+Precisa de Python 3 pros scripts de validação."
+
+`ref: agent-skills.techleads.club/tlc-spec-driven · autor: Felipe Rodrigues (Tech Leads
+Club)`
+
+Notas: `[01:24–01:26]` o glossário precisa estar no `CLAUDE.md` (colar o mesmo texto do
+S21). Pódio é de propósito uma feature com cara de simples. Prompt em
+`_facilitadora/p3-tlc.txt`.
+
+---
+
+## S41: O que o TLC devolveu
+
+**Visual:** `img/gif-13-tlc-perguntas-podio.gif` (5 critérios EARS à esquerda, 7 perguntas
+rosa à direita, saída real).
+
+Kicker: `› SAÍDA REAL`
+
+```bash
+python3 .claude/skills/tlc-spec-driven/scripts/validate_spec.py \
+  .specs/features/podio-fim-da-partida
+```
+
+Linha de baixo: "Empate, menos de 3 Jogadoras, quem entrou atrasada. O TLC não decidiu
+nenhuma: escreveu como pergunta. São os cartões rosa do Example Mapping, feitos pelo
+agente."
+
+Notas: `[01:26–01:30]` ler Q3 (empate) e votar com a turma. "Pódio parecia uma linha.
+Tem sete perguntas." Se perguntarem qual ferramenta usar: OpenSpec quando você já sabe a
+regra e quer um ciclo curto (propose, apply, archive); TLC quando a feature ainda tem
+pergunta aberta ou é grande, porque ele escala as fases e verifica com outro agente.
+Plano B: `_facilitadora/plano-b/tlc/`.
+
+---
+
+## LAB 2 (1:30–1:55)
+
+## S42: `LAB 2`
+
+**Visual:** `labPanel` + `_facilitadora/qa-gifs/gif-07-tres-formatos-ultimo.png` à direita.
+
+`MÃO NA MASSA` · `LAB 2` · **Sua primeira spec** · ⏱ 25 min · `OpenSpec ou TLC`
+
+Dica no rodapé: "Número par na chamada: OpenSpec. Ímpar: TLC. Na aula 10 vocês trocam."
+
+Notas: `[01:30–01:31]` sorteio por paridade divide a sala e garante que a aula 10 tenha
+os dois lados pra comparar.
+
+---
+
+## S43: Passo a passo
+
+**Visual:** `steps` numerados + dois terminais pequenos (OpenSpec / TLC).
+
+Kicker: `› 25 MINUTOS`
+
+1. **Escolha uma feature pequena do seu projeto** que mexe em um contexto só do seu
+   `GLOSSARIO.md`. (2 min)
+2. **Escreva 3 cenários à mão**, em Gherkin, sem abrir o agente. Use os termos do
+   glossário. (8 min)
+3. **Instale e configure** (5 min):
+
+```bash
+# par: OpenSpec
+npm install -g @fission-ai/openspec@latest
+openspec init --tools claude --language pt-BR
+# cole o GLOSSARIO.md em openspec/config.yaml, embaixo de "context: |"
+```
+
+```bash
+# ímpar: TLC
+npx @tech-leads-club/agent-skills install -s tlc-spec-driven -a claude-code
+# cole o GLOSSARIO.md no fim do CLAUDE.md
+```
+
+4. **Rode o prompt do S44.** (5 min)
+5. **Valide e compare** (5 min): o que o agente acrescentou, o que mudou, que pergunta
+   ele fez.
+
+Notas: `[01:31–01:32]` Windows: OpenSpec roda igual. TLC precisa de `python` ou `py` no
+PATH; sem Python, o agente faz a checagem lendo a spec (a skill prevê isso), e o aluno
+anota que não rodou o script.
+
+---
+
+## S44: Os prompts do lab
+
+**Visual:** dois terminais com os prompts.
+
+Kicker: `› COPIA E COLA`
+
+OpenSpec:
+
+```text
+/opsx:propose <nome-da-feature-em-kebab-case>
+
+<a regra em uma frase, com números>
+
+Use estes cenários como critério de aceite. Não invente cenário novo sem me perguntar:
+
+<seus 3 cenários>
+
+Mexa só em src/<pasta-do-contexto>/. <outros contextos> ficam fora do escopo.
+```
+
+TLC:
+
+```text
+Use a skill tlc-spec-driven para especificar a feature "<nome>": <a regra em uma frase>.
+
+Escreva os critérios de aceite em EARS, usando os termos do glossário do CLAUDE.md.
+Parta destes cenários e não invente outros sem perguntar:
+
+<seus 3 cenários>
+
+Se encontrar um caso que a descrição não resolve, registre como pergunta em vez de
+decidir sozinha. Pare depois da fase SPECIFY e me mostre o spec.md antes de seguir.
+```
+
+Notas: `[01:32–01:50]` circular. Erro comum 1: feature que mexe em dois contextos
+(dividir em duas). Erro comum 2: cenário sem número ("rápido", "melhor"). Erro comum 3:
+aceitar a primeira spec sem ler. Anotar 2 specs pra mostrar no fechamento.
+
+---
+
+## S45: Pronto quando
+
+**Visual:** `img/gif-11-tlc-validate.gif` (saída real: critério sem SHALL leva ERROR,
+critério EARS passa).
+
+Kicker: `› GATE`
+
+```bash
+openspec validate <nome-da-change>      # par
+python3 .claude/skills/tlc-spec-driven/scripts/validate_spec.py .specs/features/<feature>   # ímpar
+```
+
+`yBar` **Pronto quando:** o validador sai sem erro **e** você tem um arquivo
+`DIFERENCAS.md` com 3 linhas: uma coisa que o agente acrescentou, uma que ele mudou nos
+seus cenários, uma pergunta que ele fez (ou "não fez pergunta nenhuma", que também é
+achado).
+
+Notas: `[01:50–01:55]` armadilha conhecida do script do TLC: os critérios precisam vir na
+linha logo abaixo de `**Acceptance Criteria**:`, sem linha em branco no meio, senão ele
+não lê. O validador confere forma; o `DIFERENCAS.md` é a parte que só o aluno escreve.
+
+---
+
+## FECHAMENTO (1:55–2:00)
+
+## S46: Recap: pergunta antes de mostrar
+
+**Visual:** 3 cards que viram (pergunta em cima, resposta revelada no clique).
+
+Kicker: `› RECAP`
+
+- `01 /` "O que o agente fez com a Resposta atrasada no pedido vago?" → Deu 500 pontos e
+  escreveu teste garantindo.
+- `02 /` "Onde mora a cerca que segura o agente numa pasta?" → No glossário e no contexto
+  (`config.yaml`, `CLAUDE.md`) e no prompt.
+- `03 /` "Que pergunta o TLC fez que você não tinha pensado?" → (deles)
+
+Notas: `[01:55–01:57]` mostrar os 2 glossários e as 2 specs anotados durante os labs.
+
+---
+
+## S47: `</DEMO DAY>` aula 10
+
+**Visual:** `_facilitadora/img-ref/ref-treinaweb-event-storming.jpg` (fluxo de post-its coloridos).
+
+Kicker: `› AULA 10 · EXCALIDRAW COLETIVO`
+
+- **Formato:** trios com domínios diferentes, o board `board-bounded-contexts.excalidraw`.
+- **Rodada 1:** cada um desenha seus contextos e a seta com verbo. Os outros dois
+  perguntam "isso é fronteira de domínio ou de técnica?".
+- **Rodada 2:** troca de spec. Quem fez OpenSpec lê uma spec do TLC e vice-versa. A missão:
+  achar uma frase do cenário do colega que dá pra ler de dois jeitos.
+- **Traga pronto:** `GLOSSARIO.md` + a change validada do LAB 2.
+- **Trios:** sorteio com prioridade a domínios diferentes (o mesmo da semana 3).
+
+Notas: `[01:57–01:58]` a rodada 2 é nova em relação ao roteiro antigo da aula 10. Ajustar
+o `ROTEIRO-FACILITADORA.md`.
+
+---
+
+## S48: Entregável + regra da casa
+
+**Visual:** `_facilitadora/qa-gifs/gif-03-agente-vazando-ultimo.png` (a cerca na Partida) pequeno à direita.
+
+Kicker: `› ENTREGÁVEL · ANTES DA AULA 1 DA SEMANA 6`
+
+- **Mínima:** `GLOSSARIO.md` + uma change validada (OpenSpec ou TLC) commitada no seu repo.
+- **Completa:** a mesma feature especificada também na outra ferramenta, e um parágrafo
+  comparando: qual perguntou mais, qual inventou mais, qual você usaria no seu projeto e
+  por quê.
+- Formulário: `forms.gle/PSd6i65g44GwBMgq6`
+
+`infoBox` "Você é responsável por cada linha que commita. Inclusive as linhas da spec."
+
+Notas: `[01:58–01:59]` o `ENTREGAVEL.md` atual fala do `RELATORIO-FRONTEIRA.md`; precisa
+ser atualizado pra esta versão.
+
+---
+
+## S49: Referências
+
+**Visual:** grade de miniaturas: `ref-fowler-bounded-context.png`,
+`ref-wynne-example-mapping-mesa.png`, `ref-bockeler-sdd-niveis.png`,
+`ref-openspec-dashboard.png`.
+
+Kicker: `› PRA LER DEPOIS`
+
+- Martin Fowler, Bounded Context e Ubiquitous Language (martinfowler.com/bliki)
+- Douglas Alonso, DDD na Prática parte 2 (locadora de veículos)
+- Fabrício Rissetto, DDD: Bounded Context
+- TreinaWeb, O que é o Event Storming · Involves, DDD e Event Storming num módulo legado
+- Full Cycle, O que é DDD
+- Lílian Borba, Critérios de aceitação para histórias de usuário
+- Diego Santos, Usando todo o poder do Gherkin (partes 1 e 2)
+- Matt Wynne, Introducing Example Mapping (Cucumber)
+- Birgitta Böckeler, Understanding Spec-Driven Development: Kiro, spec-kit and Tessl
+- OpenSpec: github.com/Fission-AI/OpenSpec
+- TLC spec-driven: agent-skills.techleads.club/tlc-spec-driven
+- GitClear, The Maintainability Gap 2026
+
+Notas: `[01:59–02:00]` lista completa com URL em `REFERENCIAS.md`.
+
+---
+
+## Imagens deste deck
+
+| Arquivo | Slide | Origem |
+|---|---|---|
+| `img/gif-01-abstraction-bloat.gif` | S11 | gerado, ilustração |
+| `img/gif-02-resposta-tres-sentidos.gif` | S16, S22 | gerado |
+| `img/gif-03-agente-vazando.gif` | S20, S48 | gerado; metade ilustração, metade baseada na saída real |
+| `img/gif-04-mesa-de-trabalho.gif` | S13 | gerado, ilustração de proporção |
+| `img/gif-05-example-mapping-quiz.gif` | S27 | gerado |
+| `img/gif-06-cronometro-pontos.gif` | S1, S28 | gerado, valores pela fórmula |
+| `img/gif-07-tres-formatos.gif` | S31, S42 | gerado |
+| `img/gif-08-openspec-fluxo.gif` | S39 | gerado a partir de saída real |
+| `img/gif-09-tlc-fases.gif` | S40 | gerado, fases conforme o SKILL.md do TLC 3.3.0 |
+| `img/gif-10-openspec-validate.gif` | S38 | gerado a partir de saída real |
+| `img/gif-11-tlc-validate.gif` | S45 | gerado a partir de saída real |
+| `img/gif-12-pedido-vago-real.gif` | S8 | gerado a partir do diff real |
+| `img/gif-13-tlc-perguntas-podio.gif` | S41 | gerado a partir de saída real |
+| `_facilitadora/img-ref/ref-bockeler-sdd-visao-geral.png` | S3 | Birgitta Böckeler, martinfowler.com |
+| `_facilitadora/img-ref/ref-bockeler-sdd-niveis.png` | S33, S49 | Birgitta Böckeler, martinfowler.com |
+| `_facilitadora/img-ref/ref-fowler-bounded-context.png` | S14, S23, S49 | Martin Fowler (cópia publicada por Fabrício Rissetto) |
+| `_facilitadora/img-ref/ref-wynne-example-mapping-cartoes.jpg` | S5 | Matt Wynne, cucumber.io |
+| `_facilitadora/img-ref/ref-wynne-example-mapping-mesa.png` | S25, S49 | Matt Wynne, cucumber.io |
+| `_facilitadora/img-ref/ref-wynne-example-mapping-exemplo.jpg` | S26 | Matt Wynne, cucumber.io |
+| `_facilitadora/img-ref/ref-wynne-example-mapping-pergunta.jpg` | S26 | Matt Wynne, cucumber.io |
+| `_facilitadora/img-ref/ref-openspec-dashboard.png` | S39, S49 | README do OpenSpec (MIT) |
+| `_facilitadora/img-ref/ref-treinaweb-event-storming.jpg` | S23, S47 | TreinaWeb |
+
+Imagens de terceiros com crédito na linha `ref:` do slide. Uso em aula, sem
+redistribuição comercial.
+
+## Teto visual
+
+Nenhuma sequência de mais de 2 slides sem GIF, imagem, terminal, diagrama ou grade de
+cards. Todos os 49 slides têm uma linha **Visual:** com recurso definido.
