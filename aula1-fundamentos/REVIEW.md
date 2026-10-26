@@ -68,3 +68,10 @@ Comando: `claude -p "/explicar-para-junior src/validaCpf.js"`
 ## O que eu colocaria no CLAUDE.md pra isso não acontecer de novo
 - "Só altere o que os testes ou o pedido exigem; liste qualquer mudança extra antes de aplicar."
 - "Quando uma regra de validação for decisão sua, diga isso explicitamente no resumo."
+
+## Onde apareceu contexto, não-determinismo ou alucinação
+Contexto: ao ler o Google Doc, a ferramenta de leitura devolveu só um resumo, não o texto literal, e o agente
+avisou que podia haver detalhes omitidos em vez de afirmar que tinha lido tudo. Depois, o `CLAUDE.md` e a skill
+mudaram o comportamento: a skill proíbe rodar comandos, e na saída o agente disse que não rodou os testes e
+mandou rodar `npm test`. Alucinação não apareceu de forma clara nesta sessão; o risco que vi foi o agente
+fazer mais que o pedido (trocar `parseInt` e `==`), listado acima.
