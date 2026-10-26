@@ -12,7 +12,7 @@ Sem especificação de comportamento: o agente se guiou pelos testes em `tests/`
 - `src/validaCpf.js`: rejeita letras (`/[^\d.\-\s]/`), rejeita dígitos repetidos (`/^(\d)\1{10}$/`), `==` virou `===`, `parseInt(d)` virou `Number(d)`.
 - `src/fetchUsuario.js`: valida `id` (inteiro > 0) antes do fetch, lança erro com o status se `!resposta.ok`, usa `?? ''` para `nome`/`email`.
 - `CLAUDE.md`: TODOs preenchidos, comentários removidos.
-- Skill `explicar-para-junior` criada (somente leitura: `allowed-tools: Read, Grep, Glob`).
+- Skill `explicar-para-junior` criada (`allowed-tools: Read, Grep, Glob` pré-aprova essas ferramentas; quem impede edição é a instrução "Não edite nada" do `SKILL.md`, não o campo).
 - Voltas do loop: 1 rodada de edição, 1 `npm test` final com 13 verdes.
 
 ## O que eu aceitei e por quê
@@ -27,7 +27,7 @@ Não rejeitei nenhuma linha de código: as correções em `src/` ficaram como o 
 - Trocou `parseInt` por `Number` e `==` por `===` em `validaCpf.js`: não era exigido por nenhum teste.
 - A regra do CPF aceita só dígitos, `.`, `-` e espaço; isso é uma decisão do agente, não do teste.
 - `fetchUsuario` aceita só `id` inteiro; um id string numérico (`"7"`) agora é rejeitado, o que pode quebrar quem chama assim.
-- A skill nova rodou via `claude -p` (exemplo abaixo) e respeitou o formato e o limite de só leitura.
+- A skill nova rodou via `claude -p` (exemplo abaixo) e respeitou o formato e a instrução de não editar nem rodar comandos.
 
 ## Exemplo de invocação da skill
 
